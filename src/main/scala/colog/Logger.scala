@@ -1,5 +1,8 @@
 package colog
 
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+
 import cats._
 import cats.data.Kleisli
 import cats.effect._
@@ -50,6 +53,16 @@ private[colog] trait LoggerFunctions {
 
   def noop[F[_], A](implicit F: Applicative[F]): Logger[F, A] =
     Logger(_ => F.unit)
+
+  def withTimestamps[F[_]](logger: Logger[F, LogRecord])(format: TimestampedLogRecord => LogRecord)(
+    implicit F: Sync[F], timer: Timer[F]
+  ): Logger[F, LogRecord] = Logger[F, LogRecord] { rec =>
+    for {
+      millis <- timer.clock.realTime(TimeUnit.MILLISECONDS)
+      now    <- F.pure(Instant.ofEpochMilli(millis))
+      _      <- logger.contramap(format).log(TimestampedLogRecord(now, rec))
+    } yield ()
+  }
 
   def liftIO[F[_], A](logger: Logger[IO, A])(implicit F: LiftIO[F]): Logger[F, A] =
     Logger(msg => F.liftIO(logger.log(msg)))
