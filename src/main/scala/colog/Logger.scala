@@ -48,32 +48,35 @@ private[colog] trait LoggerFunctions {
   def stderr[F[_]](implicit F: LiftIO[F]): Logger[F, String] =
     Logger(str => F.liftIO(IO(System.err.println(str))))
 
-  def liftIO[F[_], A](action: Logger[IO, A])(implicit F: LiftIO[F]): Logger[F, A] =
-    Logger(msg => F.liftIO(action.log(msg)))
+  def noop[F[_], A](implicit F: Applicative[F]): Logger[F, A] =
+    Logger(_ => F.unit)
+
+  def liftIO[F[_], A](logger: Logger[IO, A])(implicit F: LiftIO[F]): Logger[F, A] =
+    Logger(msg => F.liftIO(logger.log(msg)))
 
 }
 
 private[colog] trait LoggerInstances1 extends LoggerInstances0 {
 
-  implicit def logActionHasLog[F[_], A]: HasLogger[F, Logger[F, A], A] = new HasLogger[F, Logger[F, A], A] {
+  implicit def loggerHasLog[F[_], A]: HasLogger[F, Logger[F, A], A] = new HasLogger[F, Logger[F, A], A] {
 
     def getLogger(env: Logger[F, A]): Logger[F, A] = env
 
-    def setLogger(action: Logger[F, A], env: Logger[F, A]): Logger[F, A] = action
+    def setLogger(logger: Logger[F, A], env: Logger[F, A]): Logger[F, A] = logger
 
   }
 
-  implicit def logActionMonoidK[F[_]](implicit F: Applicative[F]): MonoidK[Logger[F, ?]] = new MonoidK[Logger[F, ?]] {
+  implicit def loggerMonoidK[F[_]](implicit F: Applicative[F]): MonoidK[Logger[F, ?]] = new MonoidK[Logger[F, ?]] {
     override def empty[A]: Logger[F, A] = Logger(_ => F.pure(()))
 
     override def combineK[A](x: Logger[F, A], y: Logger[F, A]): Logger[F, A] =
       Logger(a => x.log(a) *> y.log(a))
   }
 
-  implicit def logActionMonoid[F[_], A](implicit F: Applicative[F]): Monoid[Logger[F, A]] =
+  implicit def loggerMonoid[F[_], A](implicit F: Applicative[F]): Monoid[Logger[F, A]] =
     MonoidK[Logger[F, ?]].algebra[A]
 
-  implicit def logActionContravariantMonoidal[F[_]](implicit F: Applicative[F]): ContravariantMonoidal[Logger[F, ?]] =
+  implicit def loggerContravariantMonoidal[F[_]](implicit F: Applicative[F]): ContravariantMonoidal[Logger[F, ?]] =
     new LoggerContravariant[F] with ContravariantMonoidal[Logger[F, ?]] {
 
       override def unit: Logger[F, Unit] =
@@ -86,7 +89,7 @@ private[colog] trait LoggerInstances1 extends LoggerInstances0 {
 }
 
 private[colog] trait LoggerInstances0 {
-  implicit def logActionContravariant[F[_]]: Contravariant[Logger[F, ?]] = new LoggerContravariant[F]
+  implicit def loggerContravariant[F[_]]: Contravariant[Logger[F, ?]] = new LoggerContravariant[F]
 }
 
 private[colog] class LoggerContravariant[F[_]] extends Contravariant[Logger[F, ?]] {
