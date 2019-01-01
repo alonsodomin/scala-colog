@@ -19,23 +19,35 @@ trait Logging[F[_], E, A] {
 
 trait StructuredLogging[F[_]] extends Logging[LogT[F, LogRecord, ?], Logger[F, LogRecord], LogRecord] {
 
+  final def error(msg: String): LogT[F, LogRecord, Unit] =
+    log(Severity.Error, msg)
+
+  final def error(msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
+    log(Severity.Error, msg, error)
+
+  final def warn(msg: String): LogT[F, LogRecord, Unit] =
+    log(Severity.Warning, msg)
+
+  final def warn(msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
+    log(Severity.Warning, msg, error)
+
   final def info(msg: String): LogT[F, LogRecord, Unit] =
-    log(LogRecord.Level.Info, msg)
+    log(Severity.Info, msg)
 
   final def info(msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
-    log(LogRecord.Level.Info, msg, error)
+    log(Severity.Info, msg, error)
 
   final def debug(msg: String): LogT[F, LogRecord, Unit] =
-    log(LogRecord.Level.Debug, msg)
+    log(Severity.Debug, msg)
 
   final def debug(msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
-    log(LogRecord.Level.Debug, msg, error)
+    log(Severity.Debug, msg, error)
 
-  final def log(level: LogRecord.Level, msg: String): LogT[F, LogRecord, Unit] =
-    logMsg(LogRecord(level, msg))
+  final def log(severity: Severity, msg: String): LogT[F, LogRecord, Unit] =
+    logMsg(LogRecord(severity, msg))
 
-  final def log(level: LogRecord.Level, msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
-    logMsg(LogRecord(level, msg, Some(error)))
+  final def log(severity: Severity, msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
+    logMsg(LogRecord(severity, msg, Some(error)))
 
 }
 
