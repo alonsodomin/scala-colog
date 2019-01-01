@@ -2,51 +2,96 @@ package colog
 
 import cats._
 import cats.data.Kleisli
-import cats.implicits._
-import cats.mtl.implicits._
-import cats.mtl.lifting.{ApplicativeLayer, ApplicativeLayerFunctor}
+import cats.effect.{IO, LiftIO}
+import cats.mtl._
+import cats.mtl.lifting.ApplicativeLayer
 
-abstract case class LoggerT[F[_], M, A] private (private[colog] val logReader: Kleisli[F, LogAction[LoggerT[F, M, ?], M], A]) {
+abstract case class LoggerT[F[_], A, B] private[colog] (
+    private[colog] val unwrap: Kleisli[F, LogAction[LoggerT[F, A, ?], A], B]
+  ) {
 
-  def ap[B](ff: LoggerT[F, M, A => B])(implicit F: Apply[F]): LoggerT[F, M, B] =
-    new LoggerT(logReader.ap(ff.logReader)) {}
+  def ap[C](ff: LoggerT[F, A, B => C])(implicit F: Apply[F]): LoggerT[F, A, C] =
+    new LoggerT(unwrap.ap(ff.unwrap)) {}
 
-  def map[B](f: A => B)(implicit F: Functor[F]): LoggerT[F, M, B] =
-    new LoggerT(logReader.map(f)) {}
+  def map[C](f: B => C)(implicit F: Functor[F]): LoggerT[F, A, C] =
+    new LoggerT(unwrap.map(f)) {}
 
-  def flatMap[B](f: A => LoggerT[F, M, B])(implicit F: FlatMap[F]): LoggerT[F, M, B] =
-    new LoggerT(logReader.flatMap(a => f(a).logReader)) {}
+  def local(f: LogAction[F, A] => LogAction[F, A])(implicit F: Applicative[F]): LoggerT[F, A, B] =
+    new LoggerT[F, A, B](unwrap.local(_.mapK(LoggerT.algebra[F, A]).lift[LoggerT[F, A, ?]])) {}
 
-  def viaAction(action: LogAction[F, M])(implicit F: Monad[F]): F[A] = {
-    logReader.run(action.lift[LoggerT[F, M, ?]])
+  def flatMap[C](f: B => LoggerT[F, A, C])(implicit F: FlatMap[F]): LoggerT[F, A, C] =
+    new LoggerT(unwrap.flatMap(a => f(a).unwrap)) {}
+
+  def imapK[G[_]](f: F ~> G, g: G ~> F): LoggerT[G, A, B] = {
+    val newArrow = Kleisli[G, LogAction[LoggerT[G, A, ?], A], B] { act =>
+      val y = LogAction[LoggerT[F, A, ?], A](msg => act.log(msg).imapK(g, f))
+      unwrap.mapK(f).run(y)
+    }
+    new LoggerT[G, A, B](newArrow) {}
+  }
+
+  def runWith(action: LogAction[F, A])(implicit F: Applicative[F]): F[B] = {
+    unwrap.run(action.lift[LoggerT[F, A, ?]])
   }
 
 }
 
-object LoggerT extends LoggerInstances2 {
+object LoggerT extends LoggerFunctions with LoggerInstances2
 
-  def apply[F[_], Msg, A](f: LogAction[LoggerT[F, Msg, ?], Msg] => F[A]): LoggerT[F, Msg, A] =
-    new LoggerT(Kleisli(f)) {}
+private[colog] trait LoggerFunctions {
 
-  def pure[F[_], Msg, A](a: A)(implicit F: Applicative[F]): LoggerT[F, Msg, A] =
+  private[colog] def algebra[F[_]: Applicative, A](implicit M: Monoid[LogAction[F, A]]): LoggerT[F, A, ?] ~> F =
+    new (LoggerT[F, A, ?] ~> F) {
+      override def apply[B](fa: LoggerT[F, A, B]): F[B] = fa.runWith(M.empty)
+    }
+
+  def apply[F[_], A, B](f: LogAction[F, A] => F[B])(implicit F: Applicative[F]): LoggerT[F, A, B] =
+    new LoggerT(Kleisli[F, LogAction[LoggerT[F, A, ?], A], B](act => f(act.mapK(algebra[F, A])))) {}
+
+  def pure[F[_], A, B](a: B)(implicit F: Applicative[F]): LoggerT[F, A, B] =
     apply(_ => F.pure(a))
 
-  def liftF[F[_], Msg, A](fa: F[A]): LoggerT[F, Msg, A] = apply(_ => fa)
-
-  type LogActionF[F[_], Msg] = LogAction[LoggerT[F, Msg, ?], Msg]
-
+  def unit[F[_]: Applicative, A]: LoggerT[F, A, Unit] = pure(())
+  
+  def liftF[F[_]: Applicative, A, B](fa: F[B]): LoggerT[F, A, B] = apply(_ => fa)
+  
 }
 
 private[colog] trait LoggerInstances2 extends LoggerInstances1 {
 
-  implicit def loggerTApplicativeLayer[F[_], Msg](implicit F0: Applicative[F]): ApplicativeLayer[LoggerT[F, Msg, ?], F] =
-    new LoggerTApplicativeLayerFunctor[F, Msg] {
-      override val outerInstance: Applicative[LoggerT[F, Msg, ?]] = Applicative[LoggerT[F, Msg, ?]]
+  implicit def loggerTApplicativeLayer[F[_], A](implicit F0: Applicative[F]): ApplicativeLayer[LoggerT[F, A, ?], F] =
+    new LoggerTApplicativeLayer[F, A] {
+      override val outerInstance: Applicative[LoggerT[F, A, ?]] = Applicative[LoggerT[F, A, ?]]
       override val innerInstance: Applicative[F] = F0
     }
 
-  implicit def loggerTMonad[F[_], Msg](implicit F0: Monad[F]): Monad[LoggerT[F, Msg, ?]] = new LoggerTMonad[F, Msg] {
+  implicit def loggerTHasLog[F[_], A](implicit F: ApplicativeLayer[LoggerT[F, A, ?], F]): HasLog[LoggerT[F, A, ?], LogAction[F, A], A] =
+    new HasLog[LoggerT[F, A, ?], LogAction[F, A], A] {
+      override def getLogAction(env: LogAction[F, A]): LogAction[LoggerT[F, A, ?], A] =
+        env.lift[LoggerT[F, A, ?]]
+
+      override def setLogAction(action: LogAction[LoggerT[F, A, ?], A], env: LogAction[F, A]): LogAction[F, A] = env
+    }
+
+  implicit def loggerTApplicativeLocal[F[_], A](
+      implicit F: Applicative[F]
+  ): ApplicativeLocal[LoggerT[F, A, ?], LogAction[F, A]] =
+    new DefaultApplicativeLocal[LoggerT[F, A, ?], LogAction[F, A]] {
+      override val applicative: Applicative[LoggerT[F, A, ?]] = loggerTApplicative[F, A]
+
+      override def local[B](f: LogAction[F, A] => LogAction[F, A])(fa: LoggerT[F, A, B]): LoggerT[F, A, B] =
+        fa.local(f)
+
+      override def ask: LoggerT[F, A, LogAction[F, A]] =
+        LoggerT(action => F.pure(action))
+    }
+
+  implicit def loggerTMonad[F[_], A](implicit F0: Monad[F]): Monad[LoggerT[F, A, ?]] = new LoggerTMonad[F, A] {
     override implicit def F: Monad[F] = F0
+  }
+
+  implicit def loggerTLiftIO[F[_]: Applicative, A](implicit F: LiftIO[F]): LiftIO[LoggerT[F, A, ?]] = new LiftIO[LoggerT[F, A, ?]] {
+    override def liftIO[B](ioa: IO[B]): LoggerT[F, A, B] = LoggerT(_ => F.liftIO(ioa))
   }
 
 }
@@ -66,28 +111,27 @@ private[colog] trait LoggerTInstances0 {
 
 }
 
-private[colog] trait LoggerTApplicativeLayerFunctor[F[_], Msg] extends ApplicativeLayer[LoggerT[F, Msg, ?], F] {
+private[colog] trait LoggerTApplicativeLayer[F[_], Msg] extends ApplicativeLayer[LoggerT[F, Msg, ?], F] {
 
-  override def layer[A](inner: F[A]): LoggerT[F, Msg, A] = LoggerT.liftF(inner)
+  override def layer[A](inner: F[A]): LoggerT[F, Msg, A] = LoggerT.liftF(inner)(innerInstance)
 
-  override def layerImapK[A](ma: LoggerT[F, Msg, A])(forward: F ~> F, backward: F ~> F): LoggerT[F, Msg, A] = ma
+  override def layerImapK[A](ma: LoggerT[F, Msg, A])(
+    forward: F ~> F,
+    backward: F ~> F
+  ): LoggerT[F, Msg, A] = ma.imapK(forward, backward)
+  
 }
 
 private[colog] trait LoggerTMonad[F[_], Msg] extends Monad[LoggerT[F, Msg, ?]]
-  with LoggerTApplicative[F, Msg]
-  with LoggerTFlatMap[F, Msg] {
+  with LoggerTApplicative[F, Msg] {
   implicit def F: Monad[F]
-}
-
-private[colog] trait LoggerTFlatMap[F[_], Msg] extends FlatMap[LoggerT[F, Msg, ?]] with LoggerTApply[F, Msg] {
-  implicit def F: FlatMap[F]
 
   override def flatMap[A, B](fa: LoggerT[F, Msg, A])(f: A => LoggerT[F, Msg, B]): LoggerT[F, Msg, B] =
     fa.flatMap(f)
 
   override def tailRecM[A, B](a: A)(f: A => LoggerT[F, Msg, Either[A, B]]): LoggerT[F, Msg, B] =
     LoggerT[F, Msg, B]({ b =>
-      F.tailRecM(a)(f(_).logReader.run(b))
+      F.tailRecM(a)(f(_).unwrap.run(b.lift[LoggerT[F, Msg, ?]]))
     })
 }
 

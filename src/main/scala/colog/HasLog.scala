@@ -7,12 +7,7 @@ trait HasLog[F[_], E, M] {
 
 object HasLog {
 
-  implicit def logActionHasLog[F[_], Msg]: HasLog[F, LogAction[F, Msg], Msg] = new HasLog[F, LogAction[F, Msg], Msg] {
-
-    def getLogAction(env: LogAction[F, Msg]): LogAction[F, Msg] = env
-
-    def setLogAction(action: LogAction[F, Msg], env: LogAction[F, Msg]): LogAction[F, Msg] = action
-
-  }
+  def over[F[_], E, M](f: LogAction[F, M] => LogAction[F, M])(env: E)(implicit F: HasLog[F, E, M]): E =
+    F.setLogAction(f(F.getLogAction(env)), env)
 
 }
