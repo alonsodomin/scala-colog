@@ -4,7 +4,7 @@ import cats.effect.{IO, LiftIO}
 import colog.{LogRecord, Logger, Severity}
 import org.slf4j.{LoggerFactory, Logger => JLogger}
 
-object Slf4jLogger {
+object Slf4jLoggers {
 
   def apply[F[_]](baseLogger: JLogger)(implicit F: LiftIO[F]): Logger[F, LogRecord] = {
     def unsafeLog(record: LogRecord)(f: (String, Throwable) => Unit): F[Unit] =
