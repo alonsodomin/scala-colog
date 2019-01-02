@@ -1,4 +1,5 @@
 package colog
+package standalone
 
 import java.io.{File, FileOutputStream, FilenameFilter, PrintStream}
 import java.nio.channels.AsynchronousFileChannel
@@ -10,16 +11,7 @@ import cats.implicits._
 
 import scala.util.Try
 
-package object standalone {
-
-  def printStream[F[_]](printStream: PrintStream)(implicit F: LiftIO[F]): Logger[F, String] =
-    Logger(msg => F.liftIO(IO(printStream.println(msg))))
-
-  def stdout[F[_]](implicit F: LiftIO[F]): Logger[F, String] =
-    Logger(str => F.liftIO(IO(println(str))))
-
-  def stderr[F[_]](implicit F: LiftIO[F]): Logger[F, String] =
-    printStream[F](System.err)
+object FileLoggers {
 
   def file[F[_]](fileName: String)(implicit F: Effect[F]): Resource[F, Logger[F, String]] =
     file[F](new File(fileName))
@@ -27,12 +19,13 @@ package object standalone {
   def file[F[_]](file: File)(implicit F: Effect[F]): Resource[F, Logger[F, String]] = {
     val outResource = Resource.fromAutoCloseable(F.liftIO(IO(new FileOutputStream(file, true))))
     val printResource = outResource.flatMap(out => Resource.fromAutoCloseable(F.liftIO(IO(new PrintStream(out)))))
-    printResource.map(printStream[F](_))
+    printResource.map(IOLoggers.printStream[F](_))
   }
 
-  private def fileChannel[F[_]](channel: AsynchronousFileChannel)(implicit F: Effect[F]): Logger[F, String] = {
-    ???
-  }
+  def autoCleanRollingFile[F[_]](fileName: String, maxFileSize: Long, maxFiles: Long)(
+    implicit F: Effect[F]
+  ): Resource[F, Logger[F, String]] =
+    rollingFile(fileName, maxFileSize, maxFiles)(f => F.delay(f.delete()).void)
 
   def rollingFile[F[_]](
     fileName: String, maxFileSize: Long, maxFiles: Long
@@ -68,24 +61,29 @@ package object standalone {
       ext.flatMap(e => Either.fromTry(Try(e.toLong)).toOption)
     }
 
-    def maxFileIndex(path: File): F[Long] = {
-      val (baseName, _) = splitFileName(path)
-      val listSibilings = F.delay {
-        path.getParentFile.listFiles(new FilenameFilter {
-          def accept(dir: File, name: String): Boolean = name.startsWith(baseName)
-        }).toList
-      }
-
-      for {
-        sibilings <- listSibilings
-        max       <- F.delay(sibilings.mapFilter(logFileIndex).maximumOption.getOrElse(0L))
-      } yield max
+    def listSibilings(f: File): F[List[File]] = F.delay {
+      val (baseName, _) = splitFileName(f)
+      f.getParentFile.listFiles(new FilenameFilter {
+        def accept(dir: File, name: String): Boolean = name.startsWith(baseName)
+      }).toList
     }
+
+    def maxFileIndex(path: File): F[Long] = for {
+      sibilings <- listSibilings(path)
+      max       <- F.pure(sibilings.mapFilter(logFileIndex).maximumOption.getOrElse(0L))
+    } yield max
 
     def renameFileToNumber(file: File, n: Long): F[Unit] =
       F.delay(file.renameTo(new File(file.getParent, s"$fileName.$n"))).void
 
-    def findOldFiles: F[List[File]] = ???
+    def findOldFiles(f: File): F[List[File]] = {
+      def isOld(f: File): Boolean = logFileIndex(f).exists(_ > maxFiles)
+
+      for {
+        sibilings <- listSibilings(f)
+        oldOnes   <- F.pure(sibilings.filter(isOld))
+      } yield oldOnes
+    }
 
     def cleanUpAndRotate(handle: Ref[F, FileHandle]): F[Unit] = {
       handle.get.flatMap { case (p, ch) =>
@@ -93,7 +91,7 @@ package object standalone {
           _         <- F.delay(ch.close())
           maxN      <- maxFileIndex(p.toFile)
           _         <- renameFileToNumber(p.toFile, maxN + 1)
-          oldFiles  <- findOldFiles
+          oldFiles  <- findOldFiles(p.toFile)
           _         <- oldFiles.traverse_(onFileTooOld)
           newHandle <- openLogFile
           _         <- handle.set(newHandle)
@@ -105,7 +103,7 @@ package object standalone {
       def openLogger: F[Logger[F, String]] = F.delay(Logger[F, String] { msg =>
         for {
           h            <- handleRef.get
-          l            <- F.delay(fileChannel[F](h._2))
+          l            <- F.pure(fileChannel[F](h._2))
           _            <- l.log(msg)
           limitReached <- isFileSizeLimitReached(h)
           _            <- F.whenA(limitReached)(cleanUpAndRotate(handleRef))
@@ -118,6 +116,10 @@ package object standalone {
     }
 
     logFileResource >>= rotatingLogger
+  }
+
+  private def fileChannel[F[_]](channel: AsynchronousFileChannel)(implicit F: Effect[F]): Logger[F, String] = {
+    ???
   }
 
 }
