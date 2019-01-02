@@ -17,14 +17,14 @@ abstract case class LogT[F[_], A, B] private[colog](
     new LogT(unwrap.map(f)) {}
 
   def local(f: Logger[F, A] => Logger[F, A])(implicit F: Applicative[F]): LogT[F, A, B] =
-    new LogT[F, A, B](unwrap.local(act => f(act.mapK(LogT.algebra[F, A])).lift[LogT[F, A, ?]])) {}
+    new LogT[F, A, B](unwrap.local(logger => f(logger.mapK(LogT.algebra[F, A])).lift[LogT[F, A, ?]])) {}
 
   def flatMap[C](f: B => LogT[F, A, C])(implicit F: FlatMap[F]): LogT[F, A, C] =
     new LogT(unwrap.flatMap(a => f(a).unwrap)) {}
 
   def imapK[G[_]](f: F ~> G, g: G ~> F): LogT[G, A, B] = {
-    val newArrow = Kleisli[G, Logger[LogT[G, A, ?], A], B] { act =>
-      val y = Logger[LogT[F, A, ?], A](msg => act.log(msg).imapK(g, f))
+    val newArrow = Kleisli[G, Logger[LogT[G, A, ?], A], B] { logger =>
+      val y = Logger[LogT[F, A, ?], A](msg => logger.log(msg).imapK(g, f))
       unwrap.mapK(f).run(y)
     }
     new LogT[G, A, B](newArrow) {}
@@ -45,7 +45,7 @@ private[colog] trait LogTFunctions {
     }
 
   def apply[F[_], A, B](f: Logger[F, A] => F[B])(implicit F: Applicative[F]): LogT[F, A, B] =
-    new LogT(Kleisli[F, Logger[LogT[F, A, ?], A], B](act => f(act.mapK(algebra[F, A])))) {}
+    new LogT(Kleisli[F, Logger[LogT[F, A, ?], A], B](logger => f(logger.mapK(algebra[F, A])))) {}
 
   def pure[F[_], A, B](a: B)(implicit F: Applicative[F]): LogT[F, A, B] =
     apply(_ => F.pure(a))
