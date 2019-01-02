@@ -7,6 +7,7 @@ import cats._
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
+import cats.mtl.FunctorTell
 import cats.mtl.lifting.FunctorLayer
 
 final case class Logger[F[_], A](log: A => F[Unit]) { self =>
@@ -61,6 +62,9 @@ private[colog] trait LoggerFunctions {
     } yield ()
   }
 
+  def tell[F[_], A](implicit F: FunctorTell[F, A]): Logger[F, A] =
+    Logger(F.tell)
+
   def liftIO[F[_], A](logger: Logger[IO, A])(implicit F: LiftIO[F]): Logger[F, A] =
     Logger(msg => F.liftIO(logger.log(msg)))
 
@@ -69,10 +73,8 @@ private[colog] trait LoggerFunctions {
 private[colog] trait LoggerInstances1 extends LoggerInstances0 {
 
   implicit def loggerHasLogger[F[_], A]: HasLogger[F, Logger[F, A], A] = new HasLogger[F, Logger[F, A], A] {
-
     def getLogger(env: Logger[F, A]): Logger[F, A] = env
     def setLogger(logger: Logger[F, A], env: Logger[F, A]): Logger[F, A] = logger
-
   }
 
   implicit def loggerMonoidK[F[_]](implicit F: Applicative[F]): MonoidK[Logger[F, ?]] = new MonoidK[Logger[F, ?]] {

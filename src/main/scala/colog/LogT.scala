@@ -30,6 +30,9 @@ abstract case class LogT[F[_], A, B] private[colog](
     new LogT[G, A, B](newArrow) {}
   }
 
+  def silent(implicit F: Applicative[F]): F[B] =
+    via(Monoid[Logger[F, A]].empty)
+
   def via(logger: Logger[F, A])(implicit F: Applicative[F]): F[B] =
     unwrap.run(logger.lift[LogT[F, A, ?]])
 
@@ -49,6 +52,8 @@ private[colog] trait LogTFunctions {
 
   def pure[F[_], A, B](a: B)(implicit F: Applicative[F]): LogT[F, A, B] =
     apply(_ => F.pure(a))
+
+  def getLogger[F[_], A](implicit F: Applicative[F]): LogT[F, A, Logger[F, A]] = apply(F.pure)
 
   def unit[F[_]: Applicative, A]: LogT[F, A, Unit] = pure(())
 
@@ -72,15 +77,15 @@ private[colog] trait LogTEffectInstances extends LogTMtlInstances {
 private[colog] trait LogTMtlInstances extends LogTMtlInstances1 {
 
   implicit def logTApplicativeLocal[F[_], A](
-                                              implicit F: Applicative[F]
-                                            ): ApplicativeLocal[LogT[F, A, ?], Logger[F, A]] =
+    implicit F: Applicative[F]
+  ): ApplicativeLocal[LogT[F, A, ?], Logger[F, A]] =
     new DefaultApplicativeLocal[LogT[F, A, ?], Logger[F, A]] {
       val applicative: Applicative[LogT[F, A, ?]] = logTApplicative[F, A]
 
       def local[B](f: Logger[F, A] => Logger[F, A])(fa: LogT[F, A, B]): LogT[F, A, B] =
         fa.local(f)
 
-      def ask: LogT[F, A, Logger[F, A]] = LogT(logger => F.pure(logger))
+      def ask: LogT[F, A, Logger[F, A]] = LogT.getLogger[F, A]
     }
 
 }
