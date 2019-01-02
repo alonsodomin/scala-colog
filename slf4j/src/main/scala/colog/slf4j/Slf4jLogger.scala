@@ -2,7 +2,7 @@ package colog.slf4j
 
 import cats.effect.{IO, LiftIO}
 import colog.{LogRecord, Logger, Severity}
-import org.slf4j.{Logger => JLogger}
+import org.slf4j.{LoggerFactory, Logger => JLogger}
 
 object Slf4jLogger {
 
@@ -20,5 +20,11 @@ object Slf4jLogger {
       unsafeLog(record)(loggingFun)
     }
   }
+
+  def forName[F[_]: LiftIO](name: String): Logger[F, LogRecord] =
+    apply[F](LoggerFactory.getLogger(name))
+
+  def forClass[F[_]: LiftIO](clazz: Class[_]): Logger[F, LogRecord] =
+    apply[F](LoggerFactory.getLogger(clazz))
 
 }
