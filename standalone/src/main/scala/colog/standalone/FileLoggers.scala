@@ -13,21 +13,21 @@ import scala.util.Try
 
 object FileLoggers {
 
-  def file[F[_]](fileName: String)(implicit F: Effect[F]): Resource[F, Logger[F, String]] =
-    file[F](new File(fileName))
+  def single[F[_]](fileName: String)(implicit F: Effect[F]): Resource[F, Logger[F, String]] =
+    single[F](new File(fileName))
 
-  def file[F[_]](file: File)(implicit F: Effect[F]): Resource[F, Logger[F, String]] = {
+  def single[F[_]](file: File)(implicit F: Effect[F]): Resource[F, Logger[F, String]] = {
     val outResource = Resource.fromAutoCloseable(F.liftIO(IO(new FileOutputStream(file, true))))
     val printResource = outResource.flatMap(out => Resource.fromAutoCloseable(F.liftIO(IO(new PrintStream(out)))))
     printResource.map(IOLoggers.printStream[F](_))
   }
 
-  def autoCleanRollingFile[F[_]](fileName: String, maxFileSize: Long, maxFiles: Long)(
+  def autoCleanRolling[F[_]](fileName: String, maxFileSize: Long, maxFiles: Long)(
     implicit F: Effect[F]
   ): Resource[F, Logger[F, String]] =
-    rollingFile(fileName, maxFileSize, maxFiles)(f => F.delay(f.delete()).void)
+    rolling(fileName, maxFileSize, maxFiles)(f => F.delay(f.delete()).void)
 
-  def rollingFile[F[_]](
+  def rolling[F[_]](
     fileName: String, maxFileSize: Long, maxFiles: Long
   )(onFileTooOld: File => F[Unit])(
     implicit F: Effect[F]
