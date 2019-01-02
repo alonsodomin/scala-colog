@@ -102,12 +102,15 @@ package object standalone {
     }
 
     def rotatingLogger(handleRef: Ref[F, FileHandle]): Resource[F, Logger[F, String]] = {
-      def openLogger: F[Logger[F, String]] = for {
-        h            <- handleRef.get
-        logger       <- F.delay(fileChannel[F](h._2))
-        limitReached <- isFileSizeLimitReached(h)
-        _            <- F.whenA(limitReached)(cleanUpAndRotate(handleRef))
-      } yield logger
+      def openLogger: F[Logger[F, String]] = F.delay(Logger[F, String] { msg =>
+        for {
+          h            <- handleRef.get
+          l            <- F.delay(fileChannel[F](h._2))
+          _            <- l.log(msg)
+          limitReached <- isFileSizeLimitReached(h)
+          _            <- F.whenA(limitReached)(cleanUpAndRotate(handleRef))
+        } yield ()
+      })
 
       def closeLogger: F[Unit] = handleRef.get >>= closeLogFile
 
