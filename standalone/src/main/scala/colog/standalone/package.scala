@@ -5,7 +5,7 @@ import java.io.{File, FileOutputStream, PrintStream}
 import cats.effect._
 import cats.implicits._
 
-package object io {
+package object standalone {
 
   def printStream[F[_]](printStream: PrintStream)(implicit F: LiftIO[F]): Logger[F, String] =
     Logger(msg => F.liftIO(IO(printStream.println(msg))))
