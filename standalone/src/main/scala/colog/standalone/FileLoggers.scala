@@ -61,7 +61,7 @@ object FileLoggers {
       ext.flatMap(e => Either.fromTry(Try(e.toLong)).toOption)
     }
 
-    def listSibilings(f: File): F[List[File]] = F.delay {
+    def listSiblings(f: File): F[List[File]] = F.delay {
       val (baseName, _) = splitFileName(f)
       f.getParentFile.listFiles(new FilenameFilter {
         def accept(dir: File, name: String): Boolean = name.startsWith(baseName)
@@ -69,8 +69,8 @@ object FileLoggers {
     }
 
     def maxFileIndex(path: File): F[Long] = for {
-      sibilings <- listSibilings(path)
-      max       <- F.pure(sibilings.mapFilter(logFileIndex).maximumOption.getOrElse(0L))
+      siblings <- listSiblings(path)
+      max      <- F.pure(siblings.mapFilter(logFileIndex).maximumOption.getOrElse(0L))
     } yield max
 
     def renameFileToNumber(file: File, n: Long): F[Unit] =
@@ -80,8 +80,8 @@ object FileLoggers {
       def isOld(f: File): Boolean = logFileIndex(f).exists(_ > maxFiles)
 
       for {
-        sibilings <- listSibilings(f)
-        oldOnes   <- F.pure(sibilings.filter(isOld))
+        siblings <- listSiblings(f)
+        oldOnes  <- F.pure(siblings.filter(isOld))
       } yield oldOnes
     }
 
