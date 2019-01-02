@@ -7,12 +7,12 @@ import cats.implicits._
 trait Logging[F[_], E, A] {
   implicit def F: Monad[F]
 
-  protected def Ask: ApplicativeAsk[F, E]
-  protected def HasLogger: HasLogger[F, E, A]
+  protected def A: ApplicativeAsk[F, E]
+  protected def HL: HasLogger[F, E, A]
 
   final def logMsg(msg: A): F[Unit] = for {
-    logAction <- Ask.reader(HasLogger.getLogger)
-    _         <- logAction.log(msg)
+    logger <- A.reader(HL.getLogger)
+    _      <- logger.log(msg)
   } yield ()
 
 }
@@ -53,25 +53,30 @@ trait StructuredLogging[F[_]] extends Logging[LogT[F, LogRecord, ?], Logger[F, L
 
 object Logging {
 
-  def simple[F[_]: Monad]: Logging[LogT[F, String, ?], Logger[F, String], String] =
+  def simple[F[_]: Monad](
+      implicit
+      HL0: HasLogger[LogT[F, String, ?], Logger[F, String], String]
+  ): Logging[LogT[F, String, ?], Logger[F, String], String] =
     new Logging[LogT[F, String, ?], Logger[F, String], String] {
       val F: Monad[LogT[F, String, ?]] = LogT.logTMonad[F, String]
 
-      val Ask: ApplicativeAsk[LogT[F, String, ?], Logger[F, String]] =
+      val A: ApplicativeAsk[LogT[F, String, ?], Logger[F, String]] =
         LogT.logTApplicativeLocal[F, String]
 
-      val HasLogger: HasLogger[LogT[F, String, ?], Logger[F, String], String] =
-        LogT.logTHasLog[F, String]
+      val HL: HasLogger[LogT[F, String, ?], Logger[F, String], String] = HL0
     }
 
-  def structured[F[_]: Monad]: StructuredLogging[F] = new StructuredLogging[F] {
+  def structured[F[_]: Monad](
+                               implicit
+                               HL0: HasLogger[LogT[F, LogRecord, ?], Logger[F, LogRecord], LogRecord]
+                             ): StructuredLogging[F] = new StructuredLogging[F] {
     val F: Monad[LogT[F, LogRecord, ?]] = LogT.logTMonad[F, LogRecord]
 
-    val Ask: ApplicativeAsk[LogT[F, LogRecord, ?], Logger[F, LogRecord]] =
+    val A: ApplicativeAsk[LogT[F, LogRecord, ?], Logger[F, LogRecord]] =
       LogT.logTApplicativeLocal[F, LogRecord]
 
-    val HasLogger: HasLogger[LogT[F, LogRecord, ?], Logger[F, LogRecord], LogRecord] =
-      LogT.logTHasLog[F, LogRecord]
+    val HL: HasLogger[LogT[F, LogRecord, ?], Logger[F, LogRecord], LogRecord] =
+      HL0
   }
 
 }

@@ -45,14 +45,11 @@ object Logger extends LoggerFunctions with LoggerInstances1
 
 private[colog] trait LoggerFunctions {
 
-  def stdout[F[_]](implicit F: LiftIO[F]): Logger[F, String] =
-    Logger(str => F.liftIO(IO(println(str))))
-
-  def stderr[F[_]](implicit F: LiftIO[F]): Logger[F, String] =
-    Logger(str => F.liftIO(IO(System.err.println(str))))
-
   def noop[F[_], A](implicit F: Applicative[F]): Logger[F, A] =
     Logger(_ => F.unit)
+
+  def const[F[_], A](msg: String)(implicit F: Applicative[F]): Logger[F, String] => Logger[F, A] =
+    base => Logger(_ => base.log(msg))
 
   def withTimestamps[F[_]](logger: Logger[F, LogRecord])(format: TimestampedLogRecord => LogRecord)(
     implicit F: Sync[F], timer: Timer[F]
@@ -71,10 +68,9 @@ private[colog] trait LoggerFunctions {
 
 private[colog] trait LoggerInstances1 extends LoggerInstances0 {
 
-  implicit def loggerHasLog[F[_], A]: HasLogger[F, Logger[F, A], A] = new HasLogger[F, Logger[F, A], A] {
+  implicit def loggerHasLogger[F[_], A]: HasLogger[F, Logger[F, A], A] = new HasLogger[F, Logger[F, A], A] {
 
     def getLogger(env: Logger[F, A]): Logger[F, A] = env
-
     def setLogger(logger: Logger[F, A], env: Logger[F, A]): Logger[F, A] = logger
 
   }
@@ -87,13 +83,12 @@ private[colog] trait LoggerInstances1 extends LoggerInstances0 {
   }
 
   implicit def loggerMonoid[F[_], A](implicit F: Applicative[F]): Monoid[Logger[F, A]] =
-    MonoidK[Logger[F, ?]].algebra[A]
+    loggerMonoidK[F].algebra[A]
 
   implicit def loggerContravariantMonoidal[F[_]](implicit F: Applicative[F]): ContravariantMonoidal[Logger[F, ?]] =
     new LoggerContravariant[F] with ContravariantMonoidal[Logger[F, ?]] {
 
-      override def unit: Logger[F, Unit] =
-        Monoid[Logger[F, Unit]].empty
+      override def unit: Logger[F, Unit] = loggerMonoid[F, Unit].empty
 
       override def product[A, B](fa: Logger[F, A], fb: Logger[F, B]): Logger[F, (A, B)] =
         Logger({ case (a, b) => fa.log(a) *> fb.log(b) })

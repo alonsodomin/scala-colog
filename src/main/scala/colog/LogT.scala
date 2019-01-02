@@ -4,7 +4,7 @@ import cats._
 import cats.data.Kleisli
 import cats.effect._
 import cats.mtl._
-import cats.mtl.lifting.ApplicativeLayer
+import cats.mtl.lifting.{ApplicativeLayer, MonadLayer}
 
 abstract case class LogT[F[_], A, B] private[colog](
     private[colog] val unwrap: Kleisli[F, Logger[LogT[F, A, ?], A], B]
@@ -35,7 +35,7 @@ abstract case class LogT[F[_], A, B] private[colog](
 
 }
 
-object LogT extends LogTFunctions with LogTInstances2
+object LogT extends LogTFunctions with LogTEffectInstances
 
 private[colog] trait LogTFunctions {
 
@@ -56,34 +56,7 @@ private[colog] trait LogTFunctions {
 
 }
 
-private[colog] trait LogTInstances2 extends LogTInstances1 {
-
-  implicit def logTApplicativeLayer[F[_], A](implicit F0: Applicative[F]): ApplicativeLayer[LogT[F, A, ?], F] =
-    new LogTApplicativeLayer[F, A] {
-      override val outerInstance: Applicative[LogT[F, A, ?]] = Applicative[LogT[F, A, ?]]
-      override val innerInstance: Applicative[F] = F0
-    }
-
-  implicit def logTHasLog[F[_], A](implicit F: ApplicativeLayer[LogT[F, A, ?], F]): HasLogger[LogT[F, A, ?], Logger[F, A], A] =
-    new HasLogger[LogT[F, A, ?], Logger[F, A], A] {
-      override def getLogger(env: Logger[F, A]): Logger[LogT[F, A, ?], A] =
-        env.lift[LogT[F, A, ?]]
-
-      override def setLogger(logger: Logger[LogT[F, A, ?], A], env: Logger[F, A]): Logger[F, A] = env
-    }
-
-  implicit def logTApplicativeLocal[F[_], A](
-      implicit F: Applicative[F]
-  ): ApplicativeLocal[LogT[F, A, ?], Logger[F, A]] =
-    new DefaultApplicativeLocal[LogT[F, A, ?], Logger[F, A]] {
-      override val applicative: Applicative[LogT[F, A, ?]] = logTApplicative[F, A]
-
-      override def local[B](f: Logger[F, A] => Logger[F, A])(fa: LogT[F, A, B]): LogT[F, A, B] =
-        fa.local(f)
-
-      override def ask: LogT[F, A, Logger[F, A]] =
-        LogT(logger => F.pure(logger))
-    }
+private[colog] trait LogTEffectInstances extends LogTMtlInstances {
 
   implicit def logTAsync[F[_], A](implicit F0: Async[F]): Async[LogT[F, A, ?]] =
     new LogTAsync[F, A] {
@@ -96,29 +69,71 @@ private[colog] trait LogTInstances2 extends LogTInstances1 {
 
 }
 
-private[colog] trait LogTInstances1 {
+private[colog] trait LogTMtlInstances extends LogTMtlInstances1 {
+
+  implicit def logTApplicativeLocal[F[_], A](
+                                              implicit F: Applicative[F]
+                                            ): ApplicativeLocal[LogT[F, A, ?], Logger[F, A]] =
+    new DefaultApplicativeLocal[LogT[F, A, ?], Logger[F, A]] {
+      val applicative: Applicative[LogT[F, A, ?]] = logTApplicative[F, A]
+
+      def local[B](f: Logger[F, A] => Logger[F, A])(fa: LogT[F, A, B]): LogT[F, A, B] =
+        fa.local(f)
+
+      def ask: LogT[F, A, Logger[F, A]] = LogT(logger => F.pure(logger))
+    }
+
+}
+
+private[colog] trait LogTMtlInstances1 extends LogTMtlInstances0 {
+
+  implicit def logTMonadLayer[F[_], A](implicit F0: Monad[F]): MonadLayer[LogT[F, A, ?], F] =
+    new LogTApplicativeLayer[F, A] with MonadLayer[LogT[F, A, ?], F] {
+      val outerInstance: Monad[LogT[F, A, ?]] = logTMonad[F, A]
+      val innerInstance: Monad[F] = F0
+    }
+
+}
+
+private[colog] trait LogTMtlInstances0 extends DirectLogTInstances {
+
+  implicit def logTApplicativeLayer[F[_], A](implicit F0: Applicative[F]): ApplicativeLayer[LogT[F, A, ?], F] =
+    new LogTApplicativeLayer[F, A] {
+      val outerInstance: Applicative[LogT[F, A, ?]] = logTApplicative[F, A]
+      val innerInstance: Applicative[F] = F0
+    }
+
+}
+
+private[colog] trait DirectLogTInstances extends DirectLogTInstances2
+
+private[colog] trait DirectLogTInstances2 extends DirectLogTInstances1 {
 
   implicit def logTMonad[F[_], A](implicit F0: Monad[F]): Monad[LogT[F, A, ?]] = new LogTMonad[F, A] {
     val F: Monad[F] = F0
   }
 
+}
+
+private[colog] trait DirectLogTInstances1 extends DirectLogTInstances0 {
+
   implicit def logTApplicative[F[_], Msg](implicit F0: Applicative[F]): Applicative[LogT[F, Msg, ?]] = new LogTApplicative[F, Msg] {
-    override implicit def F: Applicative[F] = F0
+    val F: Applicative[F] = F0
   }
 
 }
 
-private[colog] trait LogTInstances0 {
+private[colog] trait DirectLogTInstances0 {
 
   implicit def logTFunctor[F[_], Msg](implicit F0: Functor[F]): Functor[LogT[F, Msg, ?]] =
     new LogTFunctor[F, Msg] {
-      implicit def F: Functor[F] = F0
+      val F: Functor[F] = F0
     }
 
 }
 
 private[colog] trait LogTAsync[F[_], Msg] extends Async[LogT[F, Msg, ?]] with LogTSync[F, Msg] {
-  implicit def F: Async[F]
+  implicit val F: Async[F]
 
   override def async[A](k: (Either[Throwable, A] => Unit) => Unit): LogT[F, Msg, A] =
     LogT(_ => F.async(c => k(c)))
@@ -129,7 +144,7 @@ private[colog] trait LogTAsync[F[_], Msg] extends Async[LogT[F, Msg, ?]] with Lo
 }
 
 private[colog] trait LogTSync[F[_], Msg] extends Sync[LogT[F, Msg, ?]] with LogTMonadError[F, Msg, Throwable] {
-  implicit def F: Sync[F]
+  implicit val F: Sync[F]
 
   def suspend[A](thunk: => LogT[F, Msg, A]): LogT[F, Msg, A] =
     LogT(logger => F.suspend(thunk.via(logger)))
@@ -146,7 +161,8 @@ private[colog] trait LogTSync[F[_], Msg] extends Sync[LogT[F, Msg, ?]] with LogT
 private[colog] trait LogTMonadError[F[_], Msg, Err] extends MonadError[LogT[F, Msg, ?], Err]
   with LogTMonad[F, Msg]
   with LogTApplicativeError[F, Msg, Err] {
-  def F: MonadError[F, Err]
+
+  val F: MonadError[F, Err]
 }
 
 private[colog] trait LogTApplicativeLayer[F[_], Msg] extends ApplicativeLayer[LogT[F, Msg, ?], F] {
@@ -162,7 +178,7 @@ private[colog] trait LogTApplicativeLayer[F[_], Msg] extends ApplicativeLayer[Lo
 
 private[colog] trait LogTMonad[F[_], Msg] extends Monad[LogT[F, Msg, ?]]
   with LogTApplicative[F, Msg] {
-  implicit def F: Monad[F]
+  implicit val F: Monad[F]
 
   override def flatMap[A, B](fa: LogT[F, Msg, A])(f: A => LogT[F, Msg, B]): LogT[F, Msg, B] =
     fa.flatMap(f)
@@ -177,32 +193,31 @@ private[colog] trait LogTApplicativeError[F[_], Msg, Err]
   extends ApplicativeError[LogT[F, Msg, ?], Err]
     with LogTApplicative[F, Msg] {
 
-  implicit def F: ApplicativeError[F, Err]
-  implicit final val M: Monoid[Logger[F, Msg]] = Monoid[Logger[F, Msg]]
+  implicit val F: ApplicativeError[F, Err]
 
   override def raiseError[A](e: Err): LogT[F, Msg, A] =
     LogT.liftF(F.raiseError(e))
 
   override def handleErrorWith[A](fa: LogT[F, Msg, A])(f: Err => LogT[F, Msg, A]): LogT[F, Msg, A] =
-    LogT(logger => F.handleErrorWith(fa.via(logger))(err => f(err).via(M.empty)))
+    LogT(logger => F.handleErrorWith(fa.via(logger))(err => f(err).via(Logger.loggerMonoid[F, Msg].empty)))
 
 }
 
 private[colog] trait LogTApplicative[F[_], Msg] extends Applicative[LogT[F, Msg, ?]] with LogTApply[F, Msg] {
-  implicit def F: Applicative[F]
+  implicit val F: Applicative[F]
 
   override def pure[A](x: A): LogT[F, Msg, A] = LogT.pure[F, Msg, A](x)
 }
 
 private[colog] trait LogTApply[F[_], Msg] extends Apply[LogT[F, Msg, ?]] with LogTFunctor[F, Msg] {
-  implicit def F: Apply[F]
+  implicit val F: Apply[F]
 
   override def ap[A, B](ff: LogT[F, Msg, A => B])(fa: LogT[F, Msg, A]): LogT[F, Msg, B] = fa.ap(ff)
 
 }
 
 private[colog] trait LogTFunctor[F[_], Msg] extends Functor[LogT[F, Msg, ?]] {
-  implicit def F: Functor[F]
+  implicit val F: Functor[F]
 
   override def map[A, B](fa: LogT[F, Msg, A])(f: A => B): LogT[F, Msg, B] = fa.map(f)
 }
