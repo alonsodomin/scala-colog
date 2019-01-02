@@ -7,7 +7,7 @@ import cats._
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import cats.mtl.lifting.ApplicativeLayer
+import cats.mtl.lifting.FunctorLayer
 
 final case class Logger[F[_], A](log: A => F[Unit]) { self =>
 
@@ -36,7 +36,7 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
   def mapK[G[_]](f: F ~> G): Logger[G, A] =
     Logger(msg => f.apply(self.log(msg)))
 
-  def lift[G[_]](implicit G: ApplicativeLayer[G, F]): Logger[G, A] =
+  def lift[G[_]](implicit G: FunctorLayer[G, F]): Logger[G, A] =
     Logger(msg => G.layer(self.log(msg)))
 
 }
