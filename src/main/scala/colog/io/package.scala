@@ -16,6 +16,8 @@ package object io {
   def stderr[F[_]](implicit F: LiftIO[F]): Logger[F, String] =
     printStream[F](System.err)
 
+  def file[F[_]](fileName: String)(implicit F: Effect[F]): Resource[F, Logger[F, String]] = file[F](new File(fileName))
+
   def file[F[_]](file: File)(implicit F: Effect[F]): Resource[F, Logger[F, String]] = {
     val outResource = Resource.fromAutoCloseable(F.liftIO(IO(new FileOutputStream(file, true))))
     val printResource = outResource.flatMap(out => Resource.fromAutoCloseable(F.liftIO(IO(new PrintStream(out)))))
