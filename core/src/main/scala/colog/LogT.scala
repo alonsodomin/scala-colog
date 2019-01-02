@@ -19,6 +19,9 @@ abstract case class LogT[F[_], A, B] private[colog](
   def local(f: Logger[F, A] => Logger[F, A])(implicit F: Applicative[F]): LogT[F, A, B] =
     new LogT[F, A, B](unwrap.local(logger => f(logger.mapK(LogT.algebra[F, A])).lift[LogT[F, A, ?]])) {}
 
+  def flatMapF[C](f: B => F[C])(implicit F: Monad[F]): LogT[F, A, C] =
+    flatMap(b => LogT.liftF(f(b)))
+
   def flatMap[C](f: B => LogT[F, A, C])(implicit F: FlatMap[F]): LogT[F, A, C] =
     new LogT(unwrap.flatMap(a => f(a).unwrap)) {}
 

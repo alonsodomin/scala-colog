@@ -16,6 +16,20 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
 
   def <&(msg: A): F[Unit] = self.log(msg)
 
+  def >&<[B](f: B => A): Logger[F, B] = contramap(f)
+
+  def >*<[B](fb: Logger[F, B])(implicit F: Applicative[F]): Logger[F, (A, B)] =
+    Logger({ case (a, b) => self.log(a) *> fb.log(b) })
+
+  def >*(fu: Logger[F, Unit])(implicit F: Applicative[F]): Logger[F, A] =
+    Logger(a => self.log(a) <* fu.log(()))
+
+  def >|<[B](fb: Logger[F, B]): Logger[F, Either[A, B]] =
+    decideWith(fb)(identity)
+
+  def =>>(f: Logger[F, A] => F[Unit])(implicit S: Semigroup[A]): Logger[F, A] =
+    extend(f)
+
   def extract(implicit M: Monoid[A]): F[Unit] =
     self.log(M.empty)
 
@@ -90,10 +104,9 @@ private[colog] trait LoggerInstances1 extends LoggerInstances0 {
   implicit def loggerContravariantMonoidal[F[_]](implicit F: Applicative[F]): ContravariantMonoidal[Logger[F, ?]] =
     new LoggerContravariant[F] with ContravariantMonoidal[Logger[F, ?]] {
 
-      override def unit: Logger[F, Unit] = loggerMonoid[F, Unit].empty
+      def unit: Logger[F, Unit] = loggerMonoid[F, Unit].empty
 
-      override def product[A, B](fa: Logger[F, A], fb: Logger[F, B]): Logger[F, (A, B)] =
-        Logger({ case (a, b) => fa.log(a) *> fb.log(b) })
+      def product[A, B](fa: Logger[F, A], fb: Logger[F, B]): Logger[F, (A, B)] = fa >*< fb
     }
 
 }
