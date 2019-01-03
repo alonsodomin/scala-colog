@@ -10,9 +10,14 @@ import cats.implicits._
 import cats.mtl.FunctorTell
 import cats.mtl.lifting.FunctorLayer
 
+import scala.concurrent.ExecutionContext
+
 final case class Logger[F[_], A](log: A => F[Unit]) { self =>
 
   def apply(msg: A): F[Unit] = self.log(msg)
+
+  def async(ec: ExecutionContext)(implicit F: Async[F], CS: ContextShift[F]): Logger[F, A] =
+    Logger(msg => CS.evalOn(ec)(self.log(msg)))
 
   def <&(msg: A): F[Unit] = self.log(msg)
 
