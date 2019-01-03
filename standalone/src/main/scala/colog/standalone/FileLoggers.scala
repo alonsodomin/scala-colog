@@ -19,10 +19,7 @@ object FileLoggers {
     single[F](Paths.get(fileName))
 
   def single[F[_]](file: Path)(implicit F: Async[F]): Resource[F, Logger[F, Array[Byte]]] = {
-    val channelResource = Resource.make(
-      F.delay(AsynchronousFileChannel.open(file, StandardOpenOption.APPEND))
-    )(ch => F.delay(ch.close()))
-
+    val channelResource = Resource.make(openLogFileChannel(file))(ch => F.delay(ch.close()))
     channelResource.map(fileChannel[F])
   }
 
@@ -38,10 +35,9 @@ object FileLoggers {
   ): Resource[F, Logger[F, Array[Byte]]] = {
     type FileHandle = (Path, AsynchronousFileChannel)
 
-    def openLogFile: F[FileHandle] = F.delay {
+    def openLogFile: F[FileHandle] = {
       val path = new File(fileName).toPath.toAbsolutePath
-      val channel = AsynchronousFileChannel.open(path, StandardOpenOption.APPEND)
-      (path, channel)
+      openLogFileChannel(path).map(path -> _)
     }
 
     def closeLogFile(handle: FileHandle): F[Unit] =
@@ -121,6 +117,11 @@ object FileLoggers {
 
     logFileResource >>= rotatingLogger
   }
+
+  private def openLogFileChannel[F[_]](path: Path)(implicit F: Sync[F]): F[AsynchronousFileChannel] =
+    F.delay(AsynchronousFileChannel.open(path,
+      StandardOpenOption.CREATE, StandardOpenOption.WRITE
+    ))
 
   private def fileChannel[F[_]](channel: AsynchronousFileChannel)(
     implicit F: Async[F]

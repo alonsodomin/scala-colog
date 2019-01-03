@@ -61,7 +61,7 @@ lazy val globalSettings = Seq(
     "import cats.mtl.implicits._",
     "import colog._"
   ).mkString("\n"),
-  addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.8" cross CrossVersion.binary)
+  addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.9" cross CrossVersion.binary)
 )
 
 val catsVersion = "1.5.0"
