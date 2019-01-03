@@ -64,7 +64,16 @@ private[colog] trait LogTFunctions {
 
 }
 
-private[colog] trait LogTEffectInstances extends LogTMtlInstances {
+private[colog] trait LogTEffectInstances extends LogTEffectInstances0 {
+
+  implicit def logTConcurrent[F[_], A](implicit F0: Concurrent[F]): Concurrent[LogT[F, A, ?]] =
+    new LogTConcurrent[F, A] {
+      val F: Concurrent[F] = F0
+    }
+
+}
+
+private[colog] trait LogTEffectInstances0 extends LogTMtlInstances {
 
   implicit def logTAsync[F[_], A](implicit F0: Async[F]): Async[LogT[F, A, ?]] =
     new LogTAsync[F, A] {
@@ -72,7 +81,7 @@ private[colog] trait LogTEffectInstances extends LogTMtlInstances {
     }
 
   implicit def logTLiftIO[F[_]: Applicative, A](implicit F: LiftIO[F]): LiftIO[LogT[F, A, ?]] = new LiftIO[LogT[F, A, ?]] {
-    override def liftIO[B](ioa: IO[B]): LogT[F, A, B] = LogT(_ => F.liftIO(ioa))
+    def liftIO[B](ioa: IO[B]): LogT[F, A, B] = LogT(_ => F.liftIO(ioa))
   }
 
 }
@@ -137,6 +146,27 @@ private[colog] trait DirectLogTInstances0 {
     new LogTFunctor[F, Msg] {
       val F: Functor[F] = F0
     }
+
+}
+
+private[colog] trait LogTConcurrent[F[_], Msg] extends Concurrent[LogT[F, Msg, ?]] with LogTAsync[F, Msg] {
+  implicit val F: Concurrent[F]
+
+  type LogTFiber[A] = Fiber[LogT[F, Msg, ?], A]
+
+  def start[A](fa: LogT[F, Msg, A]): LogT[F, Msg, LogTFiber[A]] =
+    LogT(logger => F.map(F.start[A](fa.via(logger)))(fiberT))
+
+  def racePair[A, B](fa: LogT[F, Msg, A], fb: LogT[F, Msg, B]): LogT[F, Msg, Either[(A, LogTFiber[B]), (LogTFiber[A], B)]] =
+    LogT { logger =>
+      F.map(F.racePair(fa.via(logger), fb.via(logger))) {
+        case Left((a, fiber)) => Left((a, fiberT(fiber)))
+        case Right((fiber, b)) => Right((fiberT(fiber), b))
+      }
+    }
+
+  protected def fiberT[A](fiber: Fiber[F, A]): LogTFiber[A] =
+    Fiber(LogT.liftF(fiber.join), LogT.liftF(fiber.cancel))
 
 }
 
