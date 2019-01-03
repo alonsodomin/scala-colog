@@ -59,7 +59,10 @@ lazy val globalSettings = Seq(
     "import cats.effect.implicits._",
     "import cats.mtl._",
     "import cats.mtl.implicits._",
-    "import colog._"
+    "import colog._",
+    "import scala.concurrent.ExecutionContext",
+    "implicit val globalCS = IO.contextShift(ExecutionContext.global)",
+    "implicit val globalTimer = IO.timer(ExecutionContext.global)"
   ).mkString("\n"),
   addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.9" cross CrossVersion.binary)
 )
@@ -89,7 +92,10 @@ lazy val standalone = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
   .settings(globalSettings)
   .settings(
-    moduleName := "colog-standalone"
+    moduleName := "colog-standalone",
+    initialCommands in console += Seq(
+      "import colog.standalone._"
+    ).mkString("\n", "\n", "")
   )
   .dependsOn(core)
 

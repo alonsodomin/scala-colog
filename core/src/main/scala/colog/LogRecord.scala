@@ -1,7 +1,6 @@
 package colog
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 import cats.effect.{Resource, Sync}
@@ -25,16 +24,11 @@ object LogRecord {
     }
   }
 
-}
+  def defaultTimestampedFormat: Timestamped[LogRecord] => LogRecord =
+    timestampedFormat(DateTimeFormatter.ISO_INSTANT)
 
-final case class TimestampedLogRecord(instant: Instant, record: LogRecord)
-object TimestampedLogRecord {
-
-  def defaultFormat: TimestampedLogRecord => LogRecord =
-    formatWith(DateTimeFormatter.ISO_INSTANT)
-
-  def formatWith(formatter: DateTimeFormatter): TimestampedLogRecord => LogRecord = {
-    case TimestampedLogRecord(time, rec) =>
+  def timestampedFormat(formatter: DateTimeFormatter): Timestamped[LogRecord] => LogRecord = {
+    case (time, rec) =>
       LogRecord(rec.severity, s"[${formatter.format(time)}] ${rec.message}", rec.error)
   }
 

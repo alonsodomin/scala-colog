@@ -59,6 +59,16 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
   def lift[G[_]](implicit G: FunctorLayer[G, F]): Logger[G, A] =
     Logger(msg => G.layer(self.log(msg)))
 
+  def timestamped[B](f: Timestamped[B] => A)(implicit F: Sync[F], timer: Timer[F]): Logger[F, B] = {
+    val baseLogger = self.contramap(f)
+    Logger { msg =>
+      for {
+        millis <- timer.clock.realTime(TimeUnit.MILLISECONDS)
+        _      <- baseLogger.log((Instant.ofEpochMilli(millis), msg))
+      } yield ()
+    }
+  }
+
 }
 
 object Logger extends LoggerFunctions with LoggerInstances1
@@ -74,16 +84,6 @@ private[colog] trait LoggerFunctions {
 
   def const[F[_], A](msg: String)(implicit F: Applicative[F]): Logger[F, String] => Logger[F, A] =
     base => Logger(_ => base.log(msg))
-
-  def withTimestamps[F[_]](logger: Logger[F, LogRecord])(format: TimestampedLogRecord => LogRecord)(
-    implicit F: Sync[F], timer: Timer[F]
-  ): Logger[F, LogRecord] = Logger[F, LogRecord] { rec =>
-    for {
-      millis <- timer.clock.realTime(TimeUnit.MILLISECONDS)
-      now    <- F.pure(Instant.ofEpochMilli(millis))
-      _      <- logger.contramap(format).log(TimestampedLogRecord(now, rec))
-    } yield ()
-  }
 
   def liftIO[F[_], A](logger: Logger[IO, A])(implicit F: LiftIO[F]): Logger[F, A] =
     Logger(msg => F.liftIO(logger.log(msg)))
