@@ -60,6 +60,10 @@ object Logger extends LoggerFunctions with LoggerInstances1
 
 private[colog] trait LoggerFunctions {
 
+  def pure[F[_], A](implicit F: FunctorTell[F, Vector[A]]): Logger[F, A] = Logger { msg =>
+    F.tell(Vector(msg))
+  }
+
   def noop[F[_], A](implicit F: Applicative[F]): Logger[F, A] =
     Logger(_ => F.unit)
 
@@ -75,9 +79,6 @@ private[colog] trait LoggerFunctions {
       _      <- logger.contramap(format).log(TimestampedLogRecord(now, rec))
     } yield ()
   }
-
-  def tell[F[_], A](implicit F: FunctorTell[F, A]): Logger[F, A] =
-    Logger(F.tell)
 
   def liftIO[F[_], A](logger: Logger[IO, A])(implicit F: LiftIO[F]): Logger[F, A] =
     Logger(msg => F.liftIO(logger.log(msg)))
