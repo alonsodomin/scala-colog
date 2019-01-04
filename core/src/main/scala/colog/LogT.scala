@@ -8,16 +8,22 @@ import cats.mtl.lifting.{ApplicativeLayer, MonadLayer}
 
 abstract case class LogT[F[_], A, B] private[colog](
     private[colog] val unwrap: Kleisli[F, Logger[LogT[F, A, ?], A], B]
-  ) {
+  ) { self =>
 
   def ap[C](ff: LogT[F, A, B => C])(implicit F: Apply[F]): LogT[F, A, C] =
     new LogT(unwrap.ap(ff.unwrap)) {}
 
+  def leftMap[C](f: A => C)(implicit F: Applicative[F]): LogT[F, C, B] =
+    local[C](l => l.format(f))
+
+  def bimap[C, D](f: A => C, g: B => D)(implicit F: Applicative[F]): LogT[F, C, D] =
+    leftMap(f).map(g)
+
   def map[C](f: B => C)(implicit F: Functor[F]): LogT[F, A, C] =
     new LogT(unwrap.map(f)) {}
 
-  def local(f: Logger[F, A] => Logger[F, A])(implicit F: Applicative[F]): LogT[F, A, B] =
-    new LogT[F, A, B](unwrap.local(logger => f(logger.mapK(LogT.algebra[F, A])).lift[LogT[F, A, ?]])) {}
+  def local[AA](f: Logger[F, AA] => Logger[F, A])(implicit F: Applicative[F]): LogT[F, AA, B] =
+    new LogT[F, AA, B](unwrap.local(logger => f(logger.mapK(LogT.algebra[F, AA])).lift[LogT[F, A, ?]])) {}
 
   def flatMapF[C](f: B => F[C])(implicit F: Monad[F]): LogT[F, A, C] =
     flatMap(b => LogT.liftF(f(b)))
@@ -142,6 +148,11 @@ private[colog] trait DirectLogTInstances1 extends DirectLogTInstances0 {
 
 private[colog] trait DirectLogTInstances0 {
 
+  implicit def logTBifunctor[F[_]](implicit F0: Applicative[F]): Bifunctor[LogT[F, ?, ?]] =
+    new LogTBifunctor[F] {
+      val F: Applicative[F] = F0
+    }
+
   implicit def logTFunctor[F[_], Msg](implicit F0: Functor[F]): Functor[LogT[F, Msg, ?]] =
     new LogTFunctor[F, Msg] {
       val F: Functor[F] = F0
@@ -252,6 +263,13 @@ private[colog] trait LogTApply[F[_], Msg] extends Apply[LogT[F, Msg, ?]] with Lo
 
   override def ap[A, B](ff: LogT[F, Msg, A => B])(fa: LogT[F, Msg, A]): LogT[F, Msg, B] = fa.ap(ff)
 
+}
+
+private[colog] trait LogTBifunctor[F[_]] extends Bifunctor[LogT[F, ?, ?]] {
+  implicit val F: Applicative[F]
+
+  def bimap[A, B, C, D](fab: LogT[F, A, B])(f: A => C, g: B => D): LogT[F, C, D] =
+    fab.bimap(f, g)
 }
 
 private[colog] trait LogTFunctor[F[_], Msg] extends Functor[LogT[F, Msg, ?]] {

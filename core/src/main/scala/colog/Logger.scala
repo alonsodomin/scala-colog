@@ -7,7 +7,6 @@ import cats._
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import cats.mtl.FunctorTell
 import cats.mtl.lifting.FunctorLayer
 
 import scala.concurrent.ExecutionContext
@@ -21,16 +20,13 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
 
   def <&(msg: A): F[Unit] = self.log(msg)
 
-  def >&<[B](f: B => A): Logger[F, B] = contramap(f)
+  def >&<[B](f: B => A): Logger[F, B] = format(f)
 
   def >*<[B](fb: Logger[F, B])(implicit F: Applicative[F]): Logger[F, (A, B)] =
     Logger({ case (a, b) => self.log(a) *> fb.log(b) })
 
   def >*(fu: Logger[F, Unit])(implicit F: Applicative[F]): Logger[F, A] =
     Logger(a => self.log(a) <* fu.log(()))
-
-  def >|<[B](fb: Logger[F, B]): Logger[F, Either[A, B]] =
-    decideWith(fb)(identity)
 
   def =>>(f: Logger[F, A] => F[Unit])(implicit S: Semigroup[A]): Logger[F, A] =
     extend(f)
@@ -41,13 +37,10 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
   def extend(f: Logger[F, A] => F[Unit])(implicit S: Semigroup[A]): Logger[F, A] =
     Logger(m1 => f(Logger(m2 => self.log(m1 |+| m2))))
 
-  def decideWith[B, C](other: Logger[F, B])(f: C => Either[A, B]): Logger[F, C] =
-    Logger(f(_).fold(self.log, other.log))
-
-  def contramap[B](f: B => A): Logger[F, B] =
+  def format[B](f: B => A): Logger[F, B] =
     Logger(self.log.compose(f))
 
-  def contramapF[B](f: B => F[A])(implicit F: FlatMap[F]): Logger[F, B] =
+  def formatF[B](f: B => F[A])(implicit F: FlatMap[F]): Logger[F, B] =
     Logger(Kleisli(f).andThen(self.log).run)
 
   def filter(f: A => Boolean)(implicit F: Applicative[F]): Logger[F, A] =
@@ -60,7 +53,7 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
     Logger(msg => G.layer(self.log(msg)))
 
   def timestamped[B](f: Timestamped[B] => A)(implicit F: Sync[F], timer: Timer[F]): Logger[F, B] = {
-    val baseLogger = self.contramap(f)
+    val baseLogger = self.format(f)
     Logger { msg =>
       for {
         millis <- timer.clock.realTime(TimeUnit.MILLISECONDS)
@@ -69,21 +62,17 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
     }
   }
 
+  def or[B, C](other: Logger[F, B])(f: C => Either[A, B]): Logger[F, C] =
+    Logger(f(_).fold(self.log, other.log))
+
+  def orElse[B](fb: Logger[F, B]): Logger[F, Either[A, B]] =
+    or(fb)(identity)
+
 }
 
 object Logger extends LoggerFunctions with LoggerInstances1
 
 private[colog] trait LoggerFunctions {
-
-  def pure[F[_], A](implicit F: FunctorTell[F, Vector[A]]): Logger[F, A] = Logger { msg =>
-    F.tell(Vector(msg))
-  }
-
-  def noop[F[_], A](implicit F: Applicative[F]): Logger[F, A] =
-    Logger(_ => F.unit)
-
-  def const[F[_], A](msg: String)(implicit F: Applicative[F]): Logger[F, String] => Logger[F, A] =
-    base => Logger(_ => base.log(msg))
 
   def liftIO[F[_], A](logger: Logger[IO, A])(implicit F: LiftIO[F]): Logger[F, A] =
     Logger(msg => F.liftIO(logger.log(msg)))
@@ -123,5 +112,5 @@ private[colog] trait LoggerInstances0 {
 
 private[colog] class LoggerContravariant[F[_]] extends Contravariant[Logger[F, ?]] {
   override def contramap[A, B](fa: Logger[F, A])(f: B => A): Logger[F, B] =
-    fa.contramap(f)
+    fa.format(f)
 }
