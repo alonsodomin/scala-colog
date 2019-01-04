@@ -71,7 +71,16 @@ val catsVersion = "1.5.0"
 
 lazy val colog = (project in file("."))
   .settings(globalSettings)
-  .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j)
+  .aggregate(cologJS, cologJVM)
+
+lazy val cologJS = (project in file(".js"))
+  .enablePlugins(ScalaJSPlugin)
+  .settings(globalSettings)
+  .aggregate(coreJS, genericJS, standaloneJS)
+
+lazy val cologJVM = (project in file(".jvm"))
+  .settings(globalSettings)
+  .aggregate(coreJVM, genericJVM, standaloneJVM, slf4j)
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
@@ -80,13 +89,36 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
     moduleName := "colog-core",
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core"     % catsVersion,
+      "org.typelevel" %%% "cats-laws"     % catsVersion,
       "org.typelevel" %%% "cats-mtl-core" % "0.4.0",
-      "org.typelevel" %%% "cats-effect"   % "1.1.0"
+      "org.typelevel" %%% "cats-effect"   % "1.1.0",
+      "org.typelevel" %%% "cats-testkit"  % catsVersion % Test,
     )
   )
 
 lazy val coreJS = core.js
 lazy val coreJVM = core.jvm
+
+lazy val generic = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .settings(globalSettings)
+  .settings(
+    moduleName := "colog-generic",
+    initialCommands in console += Seq(
+      "import shapeless._",
+      "import shapeless.labelled._",
+      "import shapeless.record._",
+      "import shapeless.syntax.singleton._",
+      "import colog.generic._"
+    ).mkString("\n", "\n", ""),
+    libraryDependencies ++= Seq(
+      "com.chuusai" %%% "shapeless" % "2.3.3"
+    )
+  )
+  .dependsOn(core)
+
+lazy val genericJS = generic.js
+lazy val genericJVM = generic.jvm
 
 lazy val standalone = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
