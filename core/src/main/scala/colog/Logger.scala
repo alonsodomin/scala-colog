@@ -20,7 +20,7 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
 
   def <&(msg: A): F[Unit] = self.log(msg)
 
-  def >&<[B](f: B => A): Logger[F, B] = format(f)
+  def >&<[B](f: B => A): Logger[F, B] = formatWith(f)
 
   def >*<[B](fb: Logger[F, B])(implicit F: Applicative[F]): Logger[F, (A, B)] =
     Logger({ case (a, b) => self.log(a) *> fb.log(b) })
@@ -37,10 +37,10 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
   def extend(f: Logger[F, A] => F[Unit])(implicit S: Semigroup[A]): Logger[F, A] =
     Logger(m1 => f(Logger(m2 => self.log(m1 |+| m2))))
 
-  def format[B](f: B => A): Logger[F, B] =
+  def formatWith[B](f: B => A): Logger[F, B] =
     Logger(self.log.compose(f))
 
-  def formatF[B](f: B => F[A])(implicit F: FlatMap[F]): Logger[F, B] =
+  def formatWithF[B](f: B => F[A])(implicit F: FlatMap[F]): Logger[F, B] =
     Logger(Kleisli(f).andThen(self.log).run)
 
   def filter(f: A => Boolean)(implicit F: Applicative[F]): Logger[F, A] =
@@ -53,7 +53,7 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
     Logger(msg => G.layer(self.log(msg)))
 
   def timestamped[B](f: Timestamped[B] => A)(implicit F: Sync[F], timer: Timer[F]): Logger[F, B] = {
-    val baseLogger = self.format(f)
+    val baseLogger = self.formatWith(f)
     Logger { msg =>
       for {
         millis <- timer.clock.realTime(TimeUnit.MILLISECONDS)
@@ -112,5 +112,5 @@ private[colog] trait LoggerInstances0 {
 
 private[colog] class LoggerContravariant[F[_]] extends Contravariant[Logger[F, ?]] {
   override def contramap[A, B](fa: Logger[F, A])(f: B => A): Logger[F, B] =
-    fa.format(f)
+    fa.formatWith(f)
 }

@@ -13,14 +13,14 @@ abstract case class LogT[F[_], A, B] private[colog](
   def ap[C](ff: LogT[F, A, B => C])(implicit F: Apply[F]): LogT[F, A, C] =
     new LogT(unwrap.ap(ff.unwrap)) {}
 
-  def leftMap[C](f: A => C)(implicit F: Applicative[F]): LogT[F, C, B] =
-    local[C](l => l.format(f))
-
-  def bimap[C, D](f: A => C, g: B => D)(implicit F: Applicative[F]): LogT[F, C, D] =
-    leftMap(f).map(g)
+  def formatWith[C](f: A => C)(implicit F: Applicative[F]): LogT[F, C, B] =
+    local[C](l => l.formatWith(f))
 
   def map[C](f: B => C)(implicit F: Functor[F]): LogT[F, A, C] =
     new LogT(unwrap.map(f)) {}
+
+  def bimap[C, D](f: A => C, g: B => D)(implicit F: Applicative[F]): LogT[F, C, D] =
+    formatWith(f).map(g)
 
   def local[AA](f: Logger[F, AA] => Logger[F, A])(implicit F: Applicative[F]): LogT[F, AA, B] =
     new LogT[F, AA, B](unwrap.local(logger => f(logger.mapK(LogT.algebra[F, AA])).lift[LogT[F, A, ?]])) {}
