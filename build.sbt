@@ -71,7 +71,7 @@ val catsVersion = "1.5.0"
 
 lazy val colog = (project in file("."))
   .settings(globalSettings)
-  .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j)
+  .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j, examples)
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
@@ -89,13 +89,15 @@ lazy val coreJS = core.js
 lazy val coreJVM = core.jvm
 
 lazy val standalone = crossProject(JSPlatform, JVMPlatform)
-  .crossType(CrossType.Pure)
   .settings(globalSettings)
   .settings(
     moduleName := "colog-standalone",
     initialCommands in console += Seq(
       "import colog.standalone._"
     ).mkString("\n", "\n", "")
+  )
+  .jsSettings(
+    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.6" % Optional
   )
   .dependsOn(core)
 
@@ -110,3 +112,20 @@ lazy val slf4j = project.settings(globalSettings)
     )
   )
   .dependsOn(coreJVM)
+
+// === Examples
+
+lazy val examples = (project in file("examples"))
+  .aggregate(`example-scalajs`)
+
+lazy val `example-scalajs` = (project in file("examples/scalajs"))
+  .enablePlugins(ScalaJSPlugin)
+  .settings(
+    moduleName := "colog-example-scalajs",
+    scalaJSUseMainModuleInitializer := true,
+    libraryDependencies ++= Seq(
+      "org.scala-js" %%% "scalajs-dom" % "0.9.6",
+      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC1"
+    )
+  )
+  .dependsOn(standaloneJS)
