@@ -7,6 +7,7 @@ package object colog {
   type Log[A, B] = LogT[Id, A, B]
   type LogIO[A, B] = LogT[IO, A, B]
   type StructuredLog[F[_], A] = LogT[F, LogRecord, A]
+  type StructuredLogIO[A] = StructuredLog[IO, A]
 
   type Timestamped[A] = (Instant, A)
 

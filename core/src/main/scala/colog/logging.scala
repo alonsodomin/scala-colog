@@ -17,66 +17,67 @@ trait Logging[F[_], E, A] {
 
 }
 
-trait StructuredLogging[F[_]] extends Logging[LogT[F, LogRecord, ?], Logger[F, LogRecord], LogRecord] {
+trait StructuredLogging[F[_], E] extends Logging[F, E, LogRecord] {
 
-  final def error(msg: String): LogT[F, LogRecord, Unit] =
+  final def error(msg: String): F[Unit] =
     log(Severity.Error, msg)
 
-  final def error(msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
+  final def error(msg: String, error: Throwable): F[Unit] =
     log(Severity.Error, msg, error)
 
-  final def warn(msg: String): LogT[F, LogRecord, Unit] =
+  final def warn(msg: String): F[Unit] =
     log(Severity.Warning, msg)
 
-  final def warn(msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
+  final def warn(msg: String, error: Throwable): F[Unit] =
     log(Severity.Warning, msg, error)
 
-  final def info(msg: String): LogT[F, LogRecord, Unit] =
+  final def info(msg: String): F[Unit] =
     log(Severity.Info, msg)
 
-  final def info(msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
+  final def info(msg: String, error: Throwable): F[Unit] =
     log(Severity.Info, msg, error)
 
-  final def debug(msg: String): LogT[F, LogRecord, Unit] =
+  final def debug(msg: String): F[Unit] =
     log(Severity.Debug, msg)
 
-  final def debug(msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
+  final def debug(msg: String, error: Throwable): F[Unit] =
     log(Severity.Debug, msg, error)
 
-  final def log(severity: Severity, msg: String): LogT[F, LogRecord, Unit] =
+  final def log(severity: Severity, msg: String): F[Unit] =
     logMsg(LogRecord(severity, msg))
 
-  final def log(severity: Severity, msg: String, error: Throwable): LogT[F, LogRecord, Unit] =
+  final def log(severity: Severity, msg: String, error: Throwable): F[Unit] =
     logMsg(LogRecord(severity, msg, Some(error)))
 
 }
 
 object Logging {
 
-  def simple[F[_]: Monad](
+  def simple[F[_], E](
       implicit
-      HL0: HasLogger[LogT[F, String, ?], Logger[F, String], String]
-  ): Logging[LogT[F, String, ?], Logger[F, String], String] =
-    new Logging[LogT[F, String, ?], Logger[F, String], String] {
-      val F: Monad[LogT[F, String, ?]] = LogT.logTMonad[F, String]
+      F0: Monad[F],
+      A0: ApplicativeAsk[F, E],
+      HL0: HasLogger[F, E, String]
+  ): Logging[F, E, String] =
+    new Logging[F, E, String] {
+      val F = F0
 
-      val A: ApplicativeAsk[LogT[F, String, ?], Logger[F, String]] =
-        LogT.logTApplicativeLocal[F, String]
+      val A = A0
 
-      val HL: HasLogger[LogT[F, String, ?], Logger[F, String], String] = HL0
+      val HL = HL0
     }
 
-  def structured[F[_]: Monad](
-                               implicit
-                               HL0: HasLogger[LogT[F, LogRecord, ?], Logger[F, LogRecord], LogRecord]
-                             ): StructuredLogging[F] = new StructuredLogging[F] {
-    val F: Monad[LogT[F, LogRecord, ?]] = LogT.logTMonad[F, LogRecord]
+  def structured[F[_], E](
+      implicit
+      F0: Monad[F],
+      A0: ApplicativeAsk[F, E],
+      HL0: HasLogger[F, E, LogRecord]
+  ): StructuredLogging[F, E] = new StructuredLogging[F, E] {
+    val F = F0
 
-    val A: ApplicativeAsk[LogT[F, LogRecord, ?], Logger[F, LogRecord]] =
-      LogT.logTApplicativeLocal[F, LogRecord]
+    val A = A0
 
-    val HL: HasLogger[LogT[F, LogRecord, ?], Logger[F, LogRecord], LogRecord] =
-      HL0
+    val HL = HL0
   }
 
 }
