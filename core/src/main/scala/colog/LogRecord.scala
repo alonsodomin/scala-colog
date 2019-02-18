@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter
 import cats.effect.{Resource, Sync}
 import cats.implicits._
 
-final case class LogRecord(severity: Severity, message: String, error: Option[Throwable] = None)
+final case class LogRecord(severity: Severity, message: String, error: Option[Throwable])
 object LogRecord {
 
   def defaultFormat[F[_]](implicit F: Sync[F]): LogRecord => F[String] = record => {

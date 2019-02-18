@@ -20,21 +20,40 @@ import colog.Logger
 
 object IOLoggers {
 
+  // scalastyle:off
   def printStream[F[_]](printStream: PrintStream)(implicit F: Sync[F]): Logger[F, String] =
     Logger(msg => F.delay(printStream.println(msg)))
+  // scalastyle:on
 
-  def channel[F[_]](channel: AsynchronousByteChannel)(implicit F: Async[F]): Logger[F, Array[Byte]] =
+  @SuppressWarnings(Array("org.wartremover.warts.Null"))
+  def channel[F[_]](
+      channel: AsynchronousByteChannel
+  )(implicit F: Async[F]): Logger[F, Array[Byte]] =
     Logger[F, Array[Byte]] { buf =>
       F.void {
-        F.async[Int](cb => channel.write(ByteBuffer.wrap(buf), null, toCompletionHandler[Integer](cb.compose(_.map(_.toInt)))))
+        F.async[Int](
+          cb =>
+            channel.write(
+              ByteBuffer.wrap(buf),
+              null,
+              toCompletionHandler[Integer](cb.compose(_.map(_.toInt)))
+          )
+        )
       }
     }
 
+  @SuppressWarnings(Array("org.wartremover.warts.Null"))
   def fileChannel[F[_]](channel: AsynchronousFileChannel)(
-    implicit F: Async[F], ST: MonadState[F, Long]
+      implicit F: Async[F],
+      ST: MonadState[F, Long]
   ): Logger[F, Array[Byte]] = Logger[F, Array[Byte]] { buf =>
-    def performWrite(pos: Long): F[Int] = F.async[Int] {
-      cb => channel.write(ByteBuffer.wrap(buf), pos, null, toCompletionHandler[Integer](cb.compose(_.map(_.toInt))))
+    def performWrite(pos: Long): F[Int] = F.async[Int] { cb =>
+      channel.write(
+        ByteBuffer.wrap(buf),
+        pos,
+        null,
+        toCompletionHandler[Integer](cb.compose(_.map(_.toInt)))
+      )
     }
 
     for {

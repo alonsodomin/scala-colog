@@ -18,10 +18,11 @@ trait Logging[F[_], E, A] {
   protected def A: ApplicativeAsk[F, E]
   protected def HL: HasLogger[F, E, A]
 
-  final def logMsg(msg: A): F[Unit] = for {
-    logger <- A.reader(HL.getLogger)
-    _      <- logger.log(msg)
-  } yield ()
+  final def logMsg(msg: A): F[Unit] =
+    for {
+      logger <- A.reader(HL.getLogger)
+      _      <- logger.log(msg)
+    } yield ()
 
 }
 
@@ -52,7 +53,7 @@ trait StructuredLogging[F[_], E] extends Logging[F, E, LogRecord] {
     log(Severity.Debug, msg, error)
 
   final def log(severity: Severity, msg: String): F[Unit] =
-    logMsg(LogRecord(severity, msg))
+    logMsg(LogRecord(severity, msg, None))
 
   final def log(severity: Severity, msg: String, error: Throwable): F[Unit] =
     logMsg(LogRecord(severity, msg, Some(error)))

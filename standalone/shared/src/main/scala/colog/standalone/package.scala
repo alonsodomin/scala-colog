@@ -13,13 +13,17 @@ import java.nio.charset.{Charset, StandardCharsets}
 
 package object standalone {
 
-  private[colog] def toCompletionHandler[A](cb: Either[Throwable, A] => Unit): CompletionHandler[A, AnyRef] =
+  private[colog] def toCompletionHandler[A](
+      cb: Either[Throwable, A] => Unit
+  ): CompletionHandler[A, AnyRef] =
     new CompletionHandler[A, AnyRef] {
-      override def completed(result: A, attachment: AnyRef): Unit = cb(Right(result))
+      override def completed(result: A, attachment: AnyRef): Unit   = cb(Right(result))
       override def failed(exc: Throwable, attachment: AnyRef): Unit = cb(Left(exc))
     }
 
-  private[colog] def toCompletionHandlerU[A](cb: Either[Throwable, Unit] => Unit): CompletionHandler[Void, AnyRef] =
+  private[colog] def toCompletionHandlerU[A](
+      cb: Either[Throwable, Unit] => Unit
+  ): CompletionHandler[Void, AnyRef] =
     toCompletionHandler(cb.compose(_.map(_ => ())))
 
   def encodeLines(charset: Charset = StandardCharsets.UTF_8): String => Array[Byte] = str => {

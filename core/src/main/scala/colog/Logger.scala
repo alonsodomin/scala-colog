@@ -89,22 +89,26 @@ private[colog] trait LoggerFunctions {
 
 private[colog] trait LoggerInstances1 extends LoggerInstances0 {
 
-  implicit def loggerHasLogger[F[_], A]: HasLogger[F, Logger[F, A], A] = new HasLogger[F, Logger[F, A], A] {
-    def getLogger(env: Logger[F, A]): Logger[F, A] = env
-    def setLogger(logger: Logger[F, A], env: Logger[F, A]): Logger[F, A] = logger
-  }
+  implicit def loggerHasLogger[F[_], A]: HasLogger[F, Logger[F, A], A] =
+    new HasLogger[F, Logger[F, A], A] {
+      def getLogger(env: Logger[F, A]): Logger[F, A]                       = env
+      def setLogger(logger: Logger[F, A], env: Logger[F, A]): Logger[F, A] = logger
+    }
 
-  implicit def loggerMonoidK[F[_]](implicit F: Applicative[F]): MonoidK[Logger[F, ?]] = new MonoidK[Logger[F, ?]] {
-    override def empty[A]: Logger[F, A] = Logger(_ => F.pure(()))
+  implicit def loggerMonoidK[F[_]](implicit F: Applicative[F]): MonoidK[Logger[F, ?]] =
+    new MonoidK[Logger[F, ?]] {
+      override def empty[A]: Logger[F, A] = Logger(_ => F.pure(()))
 
-    override def combineK[A](x: Logger[F, A], y: Logger[F, A]): Logger[F, A] =
-      Logger(a => x.log(a) *> y.log(a))
-  }
+      override def combineK[A](x: Logger[F, A], y: Logger[F, A]): Logger[F, A] =
+        Logger(a => x.log(a) *> y.log(a))
+    }
 
   implicit def loggerMonoid[F[_], A](implicit F: Applicative[F]): Monoid[Logger[F, A]] =
     loggerMonoidK[F].algebra[A]
 
-  implicit def loggerContravariantMonoidal[F[_]](implicit F: Applicative[F]): ContravariantMonoidal[Logger[F, ?]] =
+  implicit def loggerContravariantMonoidal[F[_]](
+      implicit F: Applicative[F]
+  ): ContravariantMonoidal[Logger[F, ?]] =
     new LoggerContravariant[F] with ContravariantMonoidal[Logger[F, ?]] {
 
       def unit: Logger[F, Unit] = loggerMonoid[F, Unit].empty

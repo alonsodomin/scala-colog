@@ -13,8 +13,10 @@ import colog.Logger
 
 object SysLoggers {
 
+  //scalastyle:off
   def stdout[F[_]](implicit F: Sync[F]): Logger[F, String] =
     Logger(str => F.delay(println(str)))
+  //scalastyle:on
 
   def stderr[F[_]](implicit F: Sync[F]): Logger[F, String] =
     IOLoggers.printStream[F](System.err)

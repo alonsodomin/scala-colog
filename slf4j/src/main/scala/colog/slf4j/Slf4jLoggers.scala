@@ -22,10 +22,10 @@ object Slf4jLoggers {
 
     Logger { record =>
       val logFn: (String, Throwable) => Unit = record.severity match {
-        case Severity.Debug => baseLogger.debug
-        case Severity.Info => baseLogger.info
+        case Severity.Debug   => baseLogger.debug
+        case Severity.Info    => baseLogger.info
         case Severity.Warning => baseLogger.warn
-        case Severity.Error => baseLogger.error
+        case Severity.Error   => baseLogger.error
       }
       unsafeLog(record)(logFn)
     }

@@ -27,10 +27,18 @@ object DOMLoggers {
 
     Logger { rec =>
       val logFn: String => Unit = rec.severity match {
-        case Severity.Error => str => console.error(str)
-        case Severity.Warning => str => console.warn(str)
-        case Severity.Info    => str => console.info(str)
-        case Severity.Debug   => str => console.log(str)
+        case Severity.Error =>
+          str =>
+            console.error(str)
+        case Severity.Warning =>
+          str =>
+            console.warn(str)
+        case Severity.Info =>
+          str =>
+            console.info(str)
+        case Severity.Debug =>
+          str =>
+            console.log(str)
       }
 
       unsafeLog(rec)(logFn)

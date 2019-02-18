@@ -26,11 +26,11 @@ object HasLogger {
     F.setLogger(f(F.getLogger(env)), env)
 
   implicit def hasLoggerAutoDerive[G[_], F[_], E, M](
-    implicit
-    G: Monad[G],
-    L: MonadLayer[G, F],
-    A: ApplicativeAsk[G, E],
-    HL: HasLogger[F, E, M]
+      implicit
+      G: Monad[G],
+      L: MonadLayer[G, F],
+      A: ApplicativeAsk[G, E],
+      HL: HasLogger[F, E, M]
   ): HasLogger[G, E, M] = new HasLogger[G, E, M] {
 
     def getLogger(env: E): Logger[G, M] = Logger { msg =>

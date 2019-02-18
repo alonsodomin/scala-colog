@@ -20,7 +20,8 @@ object Example extends IOApp {
   type AppEff[A] = Kleisli[IO, Env, A]
 
   final val env = Env(
-    SysLoggers.stdout[IO]
+    SysLoggers
+      .stdout[IO]
       .formatWithF(LogRecord.defaultFormat[IO])
       .timestamped(LogRecord.defaultTimestampedFormat)
   )
