@@ -1,0 +1,43 @@
+language: scala
+
+sudo: required
+
+dist: trusty
+
+jdk:
+- oraclejdk8
+
+scala:
+- 2.12.8
+
+cache:
+  directories:
+  - $HOME/.m2
+  - $HOME/.sbt/0.13/dependency
+  - $HOME/.sbt/1.0/dependency
+  - $HOME/.sbt/boot/scala*
+  - $HOME/.sbt/launchers
+  - $HOME/.ivy2
+  - $HOME/.nvm
+
+env:
+  global:
+  - TRAVIS_NODE_VERSION="5"
+
+addons:
+  apt:
+    packages:
+    - graphviz
+
+before_install:
+- export PATH=${PATH}:./vendor/bundle
+
+install:
+- scripts/travis/setup.sh
+
+script:
+- scripts/travis/build.sh
+
+branches:
+  only:
+  - master

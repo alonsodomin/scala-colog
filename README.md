@@ -7,7 +7,7 @@ Cross-platform pure functional logging library for Scala. Integrates with well k
 
 Add the required dependency to your project
 
-```
+```scala
 val cologVersion = "0.1.0"
 
 libraryDependencies ++= Seq(

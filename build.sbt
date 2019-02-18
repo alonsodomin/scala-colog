@@ -1,14 +1,20 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
 inThisBuild(Seq(
-  scalaVersion := "2.12.8"
-))
-
-lazy val globalSettings = Seq(
   organizationName := "A. Alonso Dominguez",
   organization := "com.github.alonsodomin",
   startYear := Some(2018),
   licenses += ("MPL-2.0", url("https://www.mozilla.org/en-US/MPL/")),
+  homepage := Some(url("https://github.com/alonsodomin/scala-colog")),
+  developers += Developer(
+    "alonsodomin",
+    "A. Alonso Dominguez",
+    "",
+    url("https://github.com/alonsodomin")
+  )
+))
+
+lazy val globalSettings = Seq(
   scalacOptions ++= Seq(
     "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
     "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -75,6 +81,9 @@ val catsVersion = "1.5.0"
 
 lazy val colog = (project in file("."))
   .settings(globalSettings)
+  .settings(
+    skip in publish := true
+  )
   .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j, examples)
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
@@ -124,6 +133,9 @@ lazy val slf4j = project
 // === Examples
 
 lazy val examples = (project in file("examples"))
+  .settings(
+    skip in publish := true
+  )
   .aggregate(`example-scalajs`)
 
 lazy val `example-scalajs` = (project in file("examples/scalajs"))
