@@ -5,6 +5,10 @@ inThisBuild(Seq(
 ))
 
 lazy val globalSettings = Seq(
+  organizationName := "A. Alonso Dominguez",
+  organization := "com.github.alonsodomin",
+  startYear := Some(2018),
+  licenses += ("MPL-2.0", url("https://www.mozilla.org/en-US/MPL/")),
   scalacOptions ++= Seq(
     "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
     "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -75,6 +79,7 @@ lazy val colog = (project in file("."))
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
+  .enablePlugins(AutomateHeaderPlugin)
   .settings(globalSettings)
   .settings(
     moduleName := "colog-core",
@@ -89,6 +94,7 @@ lazy val coreJS = core.js
 lazy val coreJVM = core.jvm
 
 lazy val standalone = crossProject(JSPlatform, JVMPlatform)
+  .enablePlugins(AutomateHeaderPlugin)
   .settings(globalSettings)
   .settings(
     moduleName := "colog-standalone",
@@ -104,7 +110,9 @@ lazy val standalone = crossProject(JSPlatform, JVMPlatform)
 lazy val standaloneJS = standalone.js
 lazy val standaloneJVM = standalone.jvm
 
-lazy val slf4j = project.settings(globalSettings)
+lazy val slf4j = project
+  .enablePlugins(AutomateHeaderPlugin)
+  .settings(globalSettings)
   .settings(
     moduleName := "colog-slf4j",
     libraryDependencies ++= Seq(
@@ -119,7 +127,8 @@ lazy val examples = (project in file("examples"))
   .aggregate(`example-scalajs`)
 
 lazy val `example-scalajs` = (project in file("examples/scalajs"))
-  .enablePlugins(ScalaJSPlugin)
+  .enablePlugins(AutomateHeaderPlugin, ScalaJSPlugin)
+  .settings(globalSettings)
   .settings(
     moduleName := "colog-example-scalajs",
     scalaJSUseMainModuleInitializer := true,
