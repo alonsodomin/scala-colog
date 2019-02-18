@@ -94,11 +94,8 @@ def scalaStyleSettings(config: Configuration) =
 
 lazy val defaultScalaStyleSettings = scalaStyleSettings(Compile) ++ scalaStyleSettings(Test)
 
-val catsVersion = "1.5.0"
-
 lazy val colog = (project in file("."))
   .settings(globalSettings)
-  .settings(defaultScalaStyleSettings)
   .settings(
     skip in publish := true
   )
@@ -112,10 +109,11 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(
     moduleName := "colog-core",
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core"     % catsVersion,
-      "org.typelevel" %%% "cats-mtl-core" % "0.4.0",
-      "org.typelevel" %%% "cats-effect"   % "1.1.0",
-      "org.typelevel" %%% "cats-testkit"  % catsVersion % Test,
+      "org.typelevel" %%% "cats-core"        % Versions.cats.main,
+      "org.typelevel" %%% "cats-mtl-core"    % Versions.cats.mtl,
+      "org.typelevel" %%% "cats-effect"      % Versions.cats.effect,
+      "org.typelevel" %%% "cats-effect-laws" % Versions.cats.effect % Test,
+      "org.typelevel" %%% "cats-testkit"     % Versions.cats.main % Test,
     ),
     wartremoverErrors := {
       val disabledWarts = Set(Wart.Any)
