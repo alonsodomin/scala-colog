@@ -79,7 +79,7 @@ lazy val globalSettings = Seq(
   ).mkString("\n"),
   addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.9" cross CrossVersion.binary),
   wartremoverErrors ++= {
-    val disabledWarts = Set(Wart.DefaultArguments)
+    val disabledWarts = Set(Wart.DefaultArguments, Wart.Any)
     Warts.unsafe.filterNot(disabledWarts)
   },
 )
@@ -115,10 +115,6 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
       "org.typelevel" %%% "cats-effect-laws" % Versions.cats.effect % Test,
       "org.typelevel" %%% "cats-testkit"     % Versions.cats.main % Test,
     ),
-    wartremoverErrors := {
-      val disabledWarts = Set(Wart.Any)
-      wartremoverErrors.value.filterNot(disabledWarts)
-    },
   )
 
 lazy val coreJS  = core.js

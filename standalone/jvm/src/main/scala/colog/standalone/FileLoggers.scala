@@ -1,15 +1,24 @@
-package colog
-package standalone
+/*
+ * Copyright (c) 2018 A. Alonso Dominguez
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+package colog.standalone
 
 import java.io.{File, FilenameFilter}
 import java.nio.channels.AsynchronousFileChannel
-import java.nio.file._
+import java.nio.file.{Path, Paths, StandardOpenOption}
 
 import cats.data.StateT
+import cats.effect.concurrent.Ref
+import cats.effect.{Async, Resource, Sync}
 import cats.implicits._
-import cats.effect._
-import cats.effect.concurrent._
 import cats.mtl.implicits._
+
+import colog.Logger
 
 import scala.util.Try
 
