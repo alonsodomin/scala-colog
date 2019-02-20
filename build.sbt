@@ -174,3 +174,13 @@ lazy val `example-scalajs` = (project in file("examples/scalajs"))
     )
   )
   .dependsOn(standaloneJS)
+
+addCommandAlias(
+  "verify",
+  Seq(
+    "clean",
+    "test",
+    "scalafmtCheck",
+    "scalafmtSbtCheck"
+  ).mkString(";", ";", "")
+)

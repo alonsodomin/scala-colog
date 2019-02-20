@@ -19,7 +19,9 @@ import colog.Logger
 object NetworkLoggers {
 
   @SuppressWarnings(Array("org.wartremover.warts.Null"))
-  def socket[F[_]](socket: SocketAddress, ec: ExecutorService)(implicit F: Async[F]): Resource[F, Logger[F, Array[Byte]]] = {
+  def socket[F[_]](socket: SocketAddress, ec: ExecutorService)(
+      implicit F: Async[F]
+  ): Resource[F, Logger[F, Array[Byte]]] = {
     def connectSocket(ch: AsynchronousSocketChannel): F[Unit] =
       F.async[Unit](cb => ch.connect(socket, null, toCompletionHandlerU(cb)))
 
@@ -28,7 +30,9 @@ object NetworkLoggers {
     )(ch => F.delay(ch.shutdownNow()))
 
     val channelRes = channelGroupRes.flatMap { group =>
-      Resource.make(F.delay(AsynchronousSocketChannel.open(group)).flatTap(connectSocket))(ch => F.delay(ch.close()))
+      Resource.make(F.delay(AsynchronousSocketChannel.open(group)).flatTap(connectSocket))(
+        ch => F.delay(ch.close())
+      )
     }
 
     channelRes.map(IOLoggers.channel[F])

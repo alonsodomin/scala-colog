@@ -33,14 +33,16 @@ object FileLoggers {
   }
 
   def autoCleanRolling[F[_]](fileName: String, maxFileSize: Long, maxFiles: Long)(
-    implicit F: Async[F]
+      implicit F: Async[F]
   ): Resource[F, Logger[F, Array[Byte]]] =
     rolling(fileName, maxFileSize, maxFiles)(f => F.delay(f.delete()).void)
 
   def rolling[F[_]](
-    fileName: String, maxFileSize: Long, maxFiles: Long
+      fileName: String,
+      maxFileSize: Long,
+      maxFiles: Long
   )(onFileTooOld: File => F[Unit])(
-    implicit F: Async[F]
+      implicit F: Async[F]
   ): Resource[F, Logger[F, Array[Byte]]] = {
     type FileHandle = (Path, AsynchronousFileChannel)
 
@@ -60,7 +62,7 @@ object FileLoggers {
 
     def splitFileName(path: File): (String, Option[String]) = {
       val fileName = path.getName
-      val lastDot = fileName.lastIndexOf('.')
+      val lastDot  = fileName.lastIndexOf('.')
       if (lastDot <= 0) (fileName, None)
       else (fileName.substring(0, lastDot), Some(fileName.substring(lastDot + 1, fileName.length)))
     }
@@ -72,15 +74,18 @@ object FileLoggers {
 
     def listSiblings(f: File): F[List[File]] = F.delay {
       val (baseName, _) = splitFileName(f)
-      f.getParentFile.listFiles(new FilenameFilter {
-        def accept(dir: File, name: String): Boolean = name.startsWith(baseName)
-      }).toList
+      f.getParentFile
+        .listFiles(new FilenameFilter {
+          def accept(dir: File, name: String): Boolean = name.startsWith(baseName)
+        })
+        .toList
     }
 
-    def maxFileIndex(path: File): F[Long] = for {
-      siblings <- listSiblings(path)
-      max      <- F.pure(siblings.mapFilter(logFileIndex).maximumOption.getOrElse(0L))
-    } yield max
+    def maxFileIndex(path: File): F[Long] =
+      for {
+        siblings <- listSiblings(path)
+        max      <- F.pure(siblings.mapFilter(logFileIndex).maximumOption.getOrElse(0L))
+      } yield max
 
     def renameFileToNumber(file: File, n: Long): F[Unit] =
       F.delay(file.renameTo(new File(file.getParent, s"$fileName.$n"))).void
@@ -94,30 +99,31 @@ object FileLoggers {
       } yield oldOnes
     }
 
-    def cleanUpAndRotate(handle: Ref[F, FileHandle]): F[Unit] = {
-      handle.get.flatMap { case (p, ch) =>
-        for {
-          _         <- F.delay(ch.close())
-          maxN      <- maxFileIndex(p.toFile)
-          _         <- renameFileToNumber(p.toFile, maxN + 1)
-          oldFiles  <- findOldFiles(p.toFile)
-          _         <- oldFiles.traverse_(onFileTooOld)
-          newHandle <- openLogFile
-          _         <- handle.set(newHandle)
-        } yield ()
+    def cleanUpAndRotate(handle: Ref[F, FileHandle]): F[Unit] =
+      handle.get.flatMap {
+        case (p, ch) =>
+          for {
+            _         <- F.delay(ch.close())
+            maxN      <- maxFileIndex(p.toFile)
+            _         <- renameFileToNumber(p.toFile, maxN + 1)
+            oldFiles  <- findOldFiles(p.toFile)
+            _         <- oldFiles.traverse_(onFileTooOld)
+            newHandle <- openLogFile
+            _         <- handle.set(newHandle)
+          } yield ()
       }
-    }
 
     def rotatingLogger(handleRef: Ref[F, FileHandle]): Resource[F, Logger[F, Array[Byte]]] = {
-      def openLogger: F[Logger[F, Array[Byte]]] = F.delay(Logger[F, Array[Byte]] { msg =>
-        for {
-          h            <- handleRef.get
-          l            <- F.pure(fileChannel[F](h._2))
-          _            <- l.log(msg)
-          limitReached <- isFileSizeLimitReached(h)
-          _            <- F.whenA(limitReached)(cleanUpAndRotate(handleRef))
-        } yield ()
-      })
+      def openLogger: F[Logger[F, Array[Byte]]] =
+        F.delay(Logger[F, Array[Byte]] { msg =>
+          for {
+            h            <- handleRef.get
+            l            <- F.pure(fileChannel[F](h._2))
+            _            <- l.log(msg)
+            limitReached <- isFileSizeLimitReached(h)
+            _            <- F.whenA(limitReached)(cleanUpAndRotate(handleRef))
+          } yield ()
+        })
 
       def closeLogger: F[Unit] = handleRef.get >>= closeLogFile
 
@@ -127,13 +133,13 @@ object FileLoggers {
     logFileResource >>= rotatingLogger
   }
 
-  private def openLogFileChannel[F[_]](path: Path)(implicit F: Sync[F]): F[AsynchronousFileChannel] =
-    F.delay(AsynchronousFileChannel.open(path,
-      StandardOpenOption.CREATE, StandardOpenOption.WRITE
-    ))
+  private def openLogFileChannel[F[_]](
+      path: Path
+  )(implicit F: Sync[F]): F[AsynchronousFileChannel] =
+    F.delay(AsynchronousFileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE))
 
   private def fileChannel[F[_]](channel: AsynchronousFileChannel)(
-    implicit F: Async[F]
+      implicit F: Async[F]
   ): Logger[F, Array[Byte]] = {
     val baseLogger = IOLoggers.fileChannel[StateT[F, Long, ?]](channel)
 

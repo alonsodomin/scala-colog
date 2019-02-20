@@ -14,7 +14,6 @@ import cats.effect._
 import cats.mtl._
 import cats.mtl.lifting.{ApplicativeLayer, MonadLayer}
 
-@SuppressWarnings(Array("org.wartremover.warts.Any"))
 abstract case class LogT[F[_], A, B] private[colog] (
     private[colog] val unwrap: Kleisli[F, Logger[LogT[F, A, ?], A], B]
 ) { self =>
@@ -69,7 +68,6 @@ private[colog] trait LogTFunctions {
       override def apply[B](fa: LogT[F, A, B]): F[B] = fa.via(M.empty)
     }
 
-  @SuppressWarnings(Array("org.wartremover.warts.Any"))
   def apply[F[_], A, B](f: Logger[F, A] => F[B])(implicit F: Applicative[F]): LogT[F, A, B] =
     new LogT(Kleisli[F, Logger[LogT[F, A, ?], A], B](logger => f(logger.mapK(algebra[F, A])))) {}
 
