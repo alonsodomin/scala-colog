@@ -13,8 +13,9 @@ Add the required dependency to your project
 val cologVersion = "0.1.0"
 
 libraryDependencies ++= Seq(
-  "colog" %% "colog-core"       % cologVersion,
-  "colog" %% "colog-standalone" % cologVersion
+  "com.github.alonsodomin.colog" %% "colog-core"       % cologVersion,
+  "com.github.alonsodomin.colog" %% "colog-standalone" % cologVersion,    // Cross-platform
+  "com.github.alonsodomin.colog" %% "colog-slf4j"      % cologVersion,    // JVM only
 )
 ```
 

@@ -3,7 +3,7 @@ import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 inThisBuild(
   Seq(
     organizationName := "A. Alonso Dominguez",
-    organization := "com.github.alonsodomin",
+    organization := "com.github.alonsodomin.colog",
     startYear := Some(2018),
     licenses += ("MPL-2.0", url("https://www.mozilla.org/en-US/MPL/")),
     homepage := Some(url("https://github.com/alonsodomin/scala-colog")),
