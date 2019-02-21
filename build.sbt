@@ -82,6 +82,7 @@ lazy val globalSettings = Seq(
     val disabledWarts = Set(Wart.DefaultArguments, Wart.Any)
     Warts.unsafe.filterNot(disabledWarts)
   },
+  coverageEnabled := true,
 )
 
 def scalaStyleSettings(config: Configuration) =
