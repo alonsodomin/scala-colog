@@ -1,6 +1,7 @@
 # Co-Log Scala
 
 [![Build Status](https://travis-ci.org/alonsodomin/scala-colog.svg?branch=master)](https://travis-ci.org/alonsodomin/scala-colog)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e06443e988904f558a08129804ae189d)](https://www.codacy.com/app/alonsodomin/scala-colog?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=alonsodomin/scala-colog&amp;utm_campaign=Badge_Grade)
 
 Cross-platform pure functional logging library for Scala. Integrates with well known JVM logging frameworks and
  can also be used standalone in ScalaJS or Scala Native.
