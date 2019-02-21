@@ -32,11 +32,25 @@ addons:
 before_install:
 - export PATH=${PATH}:./vendor/bundle
 
+before_install:
+- git fetch --tags
+
 install:
 - scripts/travis/setup.sh
 
-script:
-- scripts/travis/build.sh
+stages:
+- name: test
+- name: release
+  if: (branch = master AND type = push) OR (tag IS present)
+
+jobs:
+  include:
+  - env: TEST="compile"
+    script: scripts/travis/build.sh
+  - env: TEST="formatting"
+    script: sbt scalafmtCheck scalafmtSbtCheck
+  - stage: release
+    script: sbt ci-release
 
 branches:
   only:
