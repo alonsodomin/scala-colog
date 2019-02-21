@@ -2,6 +2,6 @@
 
 sbt_cmd="sbt ++$TRAVIS_SCALA_VERSION"
 
-build_all="$sbt_cmd clean test"
+build_and_test="$sbt_cmd clean coverage test"
 
-eval $build_all
+eval $build_and_test
