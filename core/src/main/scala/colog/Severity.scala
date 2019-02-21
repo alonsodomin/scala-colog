@@ -10,7 +10,7 @@ package colog
 
 import cats.{Order, Show}
 
-sealed abstract class Severity(val ordinal: Int)
+sealed abstract class Severity(val ordinal: Int) extends Product with Serializable
 object Severity {
   case object Debug   extends Severity(0)
   case object Info    extends Severity(1)

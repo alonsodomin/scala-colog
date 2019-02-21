@@ -88,7 +88,7 @@ def scalaStyleSettings(config: Configuration) =
   inConfig(config)(
     Seq(
       scalastyleFailOnError := true,
-      (compile in config) := ((compile in config) dependsOn (scalastyle in config).toTask("")).value
+      //(compile in config) := ((compile in config) dependsOn (scalastyle in config).toTask("")).value
     )
   )
 
@@ -145,14 +145,15 @@ lazy val slf4j = project
   .settings(
     moduleName := "colog-slf4j",
     libraryDependencies ++= Seq(
-      "org.slf4j" % "slf4j-api" % "1.7.25"
+      "org.slf4j"      % "slf4j-api" % Versions.slf4j,
+      "org.scalamock" %% "scalamock" % Versions.scalamock % Test,
     ),
     wartremoverErrors := {
       val disabledWarts = Set(Wart.Null)
       wartremoverErrors.value.filterNot(disabledWarts)
     },
   )
-  .dependsOn(coreJVM)
+  .dependsOn(coreJVM % "compile->compile;test->test")
 
 // === Examples
 

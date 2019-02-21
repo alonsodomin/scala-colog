@@ -13,5 +13,8 @@ object Versions {
     val effect = "1.2.0"
     val mtl    = "0.5.0"
   }
+  
+  val slf4j = "1.7.25"
+  val scalamock = "4.1.0"
 
 }
