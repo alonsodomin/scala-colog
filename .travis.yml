@@ -38,7 +38,6 @@ install:
 
 stages:
 - name: test
-- name: report
 - name: release
   if: (branch = master AND type = push) OR (tag IS present)
 
@@ -48,8 +47,6 @@ jobs:
     script: scripts/travis/build.sh
   - env: TEST="formatting"
     script: sbt scalafmtCheck scalafmtSbtCheck
-  - stage: report
-    script: scripts/travis/report.sh
   - stage: release
     script: sbt ci-release
 
