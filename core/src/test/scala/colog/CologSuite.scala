@@ -8,49 +8,52 @@
 
 package colog
 
-import cats._
-import cats.effect._
-import cats.effect.laws.util.TestContext
+import java.io.{ByteArrayOutputStream, PrintStream}
+import java.nio.charset.StandardCharsets
+
+import cats.effect.laws.util.{TestContext, TestInstances}
+import org.typelevel.discipline.Laws
 import cats.tests.CatsSuite
-import cats.laws.discipline.eq._
-import org.scalacheck.{Arbitrary, Cogen}
 
-abstract class CologSuite extends CatsSuite {
+import scala.util.control.NonFatal
 
-  implicit val testCtx: TestContext = TestContext()
+abstract class CologSuite extends CatsSuite with TestInstances with CologInstances {
 
-  implicit def contextShift[F[_]](implicit F: Async[F]): ContextShift[F] = testCtx.contextShift[F]
+  def checkAllAsync(name: String, f: TestContext => Laws#RuleSet): Unit = {
+    val context = TestContext()
+    val ruleSet = f(context)
 
-  implicit def loggerEq[F[_], A](implicit A: Arbitrary[A], FU: Eq[F[Unit]]): Eq[Logger[F, A]] =
-    Eq.by[Logger[F, A], A => F[Unit]](_.log)
+    for ((id, prop) ← ruleSet.all.properties)
+      test(name + "." + id) {
+        silenceSystemErr(check(prop))
+      }
 
-  implicit def loggerArbitrary[F[_], A](
-      implicit A: Arbitrary[A],
-      CA: Cogen[A],
-      FU: Arbitrary[F[Unit]]
-  ): Arbitrary[Logger[F, A]] =
-    Arbitrary(Arbitrary.arbitrary[A => F[Unit]].map(Logger(_)))
+  }
 
-  implicit def loggerCogen[F[_], A](
-      implicit
-      F: Applicative[F],
-      CU: Cogen[F[Unit]]
-  ): Cogen[Logger[F, A]] =
-    Cogen((seed, _) => CU.perturb(seed, F.unit))
-
-  implicit def logTEq[F[_], A, B](
-      implicit A: Arbitrary[Logger[F, A]],
-      F: Applicative[F],
-      FB: Eq[F[B]]
-  ): Eq[LogT[F, A, B]] =
-    Eq.by[LogT[F, A, B], Logger[F, A] => F[B]](_.via)
-
-  implicit def logTArbitrary[F[_], A, B](
-      implicit A: Arbitrary[A],
-      CA: Cogen[Logger[F, A]],
-      F: Applicative[F],
-      FB: Arbitrary[F[B]]
-  ): Arbitrary[LogT[F, A, B]] =
-    Arbitrary(Arbitrary.arbitrary[Logger[F, A] => F[B]].map(LogT.apply(_)))
+  /**
+    * Silences `System.err`, only printing the output in case exceptions are
+    * thrown by the executed `thunk`.
+    */
+  @SuppressWarnings(Array("org.wartremover.warts.Throw"))
+  private def silenceSystemErr[A](thunk: => A): A = synchronized {
+    // Silencing System.err
+    val oldErr    = System.err
+    val outStream = new ByteArrayOutputStream()
+    val fakeErr   = new PrintStream(outStream)
+    System.setErr(fakeErr)
+    try {
+      val result = thunk
+      System.setErr(oldErr)
+      result
+    } catch {
+      case NonFatal(e) =>
+        System.setErr(oldErr)
+        // In case of errors, print whatever was caught
+        fakeErr.close()
+        val out = new String(outStream.toByteArray, StandardCharsets.UTF_8)
+        if (out.nonEmpty) oldErr.println(out)
+        throw e
+    }
+  }
 
 }

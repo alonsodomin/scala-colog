@@ -9,21 +9,33 @@
 package colog
 
 import cats.effect.IO
-import cats.effect.laws.discipline.ConcurrentTests
+import cats.effect.laws.discipline.SyncTests
 import cats.effect.laws.discipline.arbitrary._
-import cats.effect.laws.util.TestInstances._
-import cats.laws.discipline.{BifunctorTests, MonadTests}
+import cats.laws.discipline.arbitrary._
+import cats.laws.discipline.{BifunctorTests, MonadTests, MonadErrorTests}
 
 class LogTSpec extends CologSuite {
 
-  checkAll("Monad[LogT]", MonadTests[LogT[IO, String, ?]].monad[Int, Int, Int])
-  checkAll(
+  checkAllAsync("Monad[LogT]", implicit ec => MonadTests[LogT[IO, String, ?]].monad[Int, Int, Int])
+  checkAllAsync(
     "Bifunctor[LogT]",
-    BifunctorTests[LogT[IO, ?, ?]].bifunctor[String, String, String, Int, Int, Int]
+    implicit ec => BifunctorTests[LogT[IO, ?, ?]].bifunctor[String, String, String, Int, Int, Int]
   )
-  checkAll(
+  checkAllAsync(
+    "MonadError[LogT]",
+    implicit ec => MonadErrorTests[LogT[IO, String, ?], Throwable].monadError[Int, Int, Int]
+  )
+  checkAllAsync(
+    "Sync[LogT]",
+    implicit ec => {
+      implicit val cs = ec.contextShift[IO]
+
+      SyncTests[LogT[IO, String, ?]].sync[Int, Int, Int]
+    }
+  )
+  /*checkAll(
     "Concurrent[LogT]",
     ConcurrentTests[LogT[IO, String, ?]].concurrent[String, String, String]
-  )
+  )*/
 
 }

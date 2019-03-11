@@ -10,17 +10,17 @@ package colog
 
 import cats.effect.IO
 import cats.effect.laws.discipline.arbitrary._
-import cats.effect.laws.util.TestInstances._
 import cats.kernel.laws.discipline.MonoidTests
 import cats.laws.discipline.{ContravariantMonoidalTests, MonoidKTests}
 
 class LoggerSpec extends CologSuite {
 
-  checkAll("Monoid[Logger]", MonoidTests[Logger[IO, String]].monoid)
-  checkAll("MonoidK[Logger]", MonoidKTests[Logger[IO, ?]].monoidK[String])
-  checkAll(
+  checkAllAsync("Monoid[Logger]", implicit ec => MonoidTests[Logger[IO, String]].monoid)
+  checkAllAsync("MonoidK[Logger]", implicit ec => MonoidKTests[Logger[IO, ?]].monoidK[String])
+  checkAllAsync(
     "ContravariantMonoidal[Logger]",
-    ContravariantMonoidalTests[Logger[IO, ?]].contravariantMonoidal[String, String, String]
+    implicit ec =>
+      ContravariantMonoidalTests[Logger[IO, ?]].contravariantMonoidal[String, String, String]
   )
 
 }
