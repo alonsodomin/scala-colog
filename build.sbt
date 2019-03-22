@@ -96,9 +96,13 @@ def scalaStyleSettings(config: Configuration) =
 lazy val defaultScalaStyleSettings = scalaStyleSettings(Compile) ++ scalaStyleSettings(Test)
 
 lazy val colog = (project in file("."))
+  .enablePlugins(MdocPlugin, DocusaurusPlugin)
   .settings(globalSettings)
   .settings(
-    skip in publish := true
+    skip in publish := true,
+    mdocVariables := Map(
+      "VERSION" -> version.value
+    ),
   )
   .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j, examples)
 
@@ -176,6 +180,15 @@ lazy val `example-scalajs` = (project in file("examples/scalajs"))
     )
   )
   .dependsOn(standaloneJS)
+
+/*lazy val docs = (project in file("docs"))
+  .settings(
+    mdocVariables := Map(
+      "VERSION" -> version.value
+    )
+  )
+  .dependsOn(coreJVM)
+  .enablePlugins(MdocPlugin)*/
 
 addCommandAlias(
   "verify",
