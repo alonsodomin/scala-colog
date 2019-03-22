@@ -181,15 +181,6 @@ lazy val `example-scalajs` = (project in file("examples/scalajs"))
   )
   .dependsOn(standaloneJS)
 
-/*lazy val docs = (project in file("docs"))
-  .settings(
-    mdocVariables := Map(
-      "VERSION" -> version.value
-    )
-  )
-  .dependsOn(coreJVM)
-  .enablePlugins(MdocPlugin)*/
-
 addCommandAlias(
   "verify",
   Seq(
