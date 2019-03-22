@@ -1,7 +1,5 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
-val copyApiDocs = taskKey[Unit]("Generate full website")
-
 inThisBuild(
   Seq(
     organizationName := "A. Alonso Dominguez",
@@ -203,6 +201,8 @@ lazy val `example-scalajs` = (project in file("examples/scalajs"))
   )
   .dependsOn(standaloneJS)
 
+// Command aliases
+
 addCommandAlias(
   "verify",
   Seq(
@@ -210,5 +210,13 @@ addCommandAlias(
     "test",
     "scalafmtCheck",
     "scalafmtSbtCheck"
+  ).mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "validateDocs",
+  Seq(
+    "docs/clean",
+    "docs/generateWebsite"
   ).mkString(";", ";", "")
 )

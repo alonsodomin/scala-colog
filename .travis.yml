@@ -45,8 +45,10 @@ jobs:
   include:
   - env: TEST="compile"
     script: scripts/travis/build.sh
+
   - env: TEST="formatting"
     script: sbt scalafmtCheck scalafmtSbtCheck
+
   - stage: release
     script: sbt ci-release
 
