@@ -27,7 +27,7 @@ const siteConfig = {
   url: 'https://alonsodomin.github.io',
   baseUrl: '/scala-colog/',
 
-  customDocsPath: 'target/mdoc',
+  customDocsPath: '.docs/target/mdoc',
 
   // Used for publishing and more
   projectName: 'scala-colog',

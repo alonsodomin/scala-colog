@@ -102,7 +102,7 @@ lazy val colog = (project in file("."))
   )
   .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j, examples, docs)
 
-lazy val docs = (project in file("."))
+lazy val docs = (project in file(".docs"))
   .enablePlugins(MdocPlugin, DocusaurusPlugin)
   .settings(
     skip in publish := true,
