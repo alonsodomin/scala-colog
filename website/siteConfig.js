@@ -8,6 +8,8 @@
 // See https://docusaurus.io/docs/site-config for all the possible
 // site configuration options.
 
+const repoUrl = "https://github.com/alonsodomin/scala-colog";
+
 // List of projects/orgs using your project for the users page.
 const users = [];
 /*const users = [
@@ -27,7 +29,7 @@ const siteConfig = {
   url: 'https://alonsodomin.github.io',
   baseUrl: '/scala-colog/',
 
-  customDocsPath: '.docs/target/mdoc',
+  customDocsPath: 'website/target/mdoc',
 
   // Used for publishing and more
   projectName: 'scala-colog',
@@ -38,9 +40,10 @@ const siteConfig = {
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
-    {doc: 'readme', label: 'Docs'},
+    {doc: 'overview', label: 'Documentation'},
     //{doc: 'doc4', label: 'API'},
     {page: 'help', label: 'Help'},
+    {href: repoUrl, label: "GitHub", external: true},
   ],
 
   // If you have users set above, you add it here:
@@ -97,9 +100,9 @@ const siteConfig = {
   // Show documentation's last update time.
   // enableUpdateTime: true,
 
-  // You may provide arbitrary config keys to be used as needed by your
-  // template. For example, if you need your repo's URL...
-  //   repoUrl: 'https://github.com/facebook/test-site',
+  editUrl: `${repoUrl}/edit/master/docs/`,
+
+  repoUrl,
 };
 
 module.exports = siteConfig;

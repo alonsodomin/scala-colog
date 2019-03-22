@@ -5,18 +5,17 @@
     "previous": "Previous",
     "tagline": "A pure functional programming logging framework for Scala",
     "docs": {
-      "readme": {
-        "title": "readme"
+      "overview": {
+        "title": "overview"
       }
     },
     "links": {
-      "Docs": "Docs",
-      "Help": "Help"
+      "Documentation": "Documentation",
+      "Help": "Help",
+      "GitHub": "GitHub"
     },
     "categories": {
-      "Docusaurus": "Docusaurus",
-      "First Category": "First Category",
-      "Second Category": "Second Category"
+      "Documentation": "Documentation"
     }
   },
   "pages-strings": {

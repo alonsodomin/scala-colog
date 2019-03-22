@@ -1,5 +1,7 @@
 import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
 
+val copyApiDocs = taskKey[Unit]("Generate full website")
+
 inThisBuild(
   Seq(
     organizationName := "A. Alonso Dominguez",
@@ -77,6 +79,7 @@ lazy val globalSettings = Seq(
     "implicit val globalCS = IO.contextShift(ExecutionContext.global)",
     "implicit val globalTimer = IO.timer(ExecutionContext.global)"
   ).mkString("\n"),
+  apiURL := Some(url("https://alonsodomin.github.io/scala-colog/api/")),
   addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.9" cross CrossVersion.binary),
   wartremoverErrors ++= {
     val disabledWarts = Set(Wart.DefaultArguments, Wart.Any)
@@ -102,13 +105,26 @@ lazy val colog = (project in file("."))
   )
   .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j, examples, docs)
 
-lazy val docs = (project in file(".docs"))
-  .enablePlugins(MdocPlugin, DocusaurusPlugin)
+lazy val docs = (project in file("website"))
+  .enablePlugins(WebsitePlugin)
+  .settings(globalSettings)
   .settings(
     skip in publish := true,
     moduleName := "colog-docs",
+    docusaurusProjectName := "scala-colog",
     mdocVariables := Map(
       "VERSION" -> version.value
+    ),
+    autoAPIMappings := true,
+    unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(coreJVM, standaloneJVM, slf4j),
+    fork in (ScalaUnidoc, unidoc) := true,
+    scalacOptions in (ScalaUnidoc, unidoc) ++= Seq(
+      "-Xfatal-warnings",
+      "-doc-source-url",
+      scmInfo.value.get.browseUrl + "/tree/master€{FILE_PATH}.scala",
+      "-sourcepath",
+      baseDirectory.in(LocalRootProject).value.getAbsolutePath,
+      "-diagrams"
     ),
   ).dependsOn(standaloneJVM, slf4j)
 

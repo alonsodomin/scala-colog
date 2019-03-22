@@ -16,6 +16,7 @@ import org.slf4j.{LoggerFactory, Logger => JLogger}
 
 object Slf4jLoggers {
 
+  @SuppressWarnings(Array("org.wartremover.warts.Null"))
   def apply[F[_]](baseLogger: JLogger)(implicit F: Sync[F]): Logger[F, LogRecord] = {
     def unsafeLog(record: LogRecord)(f: (String, Throwable) => Unit): F[Unit] =
       F.delay(f(record.message, record.error.orNull))
