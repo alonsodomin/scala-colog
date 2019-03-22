@@ -96,15 +96,21 @@ def scalaStyleSettings(config: Configuration) =
 lazy val defaultScalaStyleSettings = scalaStyleSettings(Compile) ++ scalaStyleSettings(Test)
 
 lazy val colog = (project in file("."))
-  .enablePlugins(MdocPlugin, DocusaurusPlugin)
   .settings(globalSettings)
   .settings(
     skip in publish := true,
+  )
+  .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j, examples, docs)
+
+lazy val docs = (project in file("."))
+  .enablePlugins(MdocPlugin, DocusaurusPlugin)
+  .settings(
+    skip in publish := true,
+    moduleName := "colog-docs",
     mdocVariables := Map(
       "VERSION" -> version.value
     ),
-  )
-  .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j, examples)
+  ).dependsOn(standaloneJVM, slf4j)
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)

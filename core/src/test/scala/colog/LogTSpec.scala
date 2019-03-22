@@ -9,7 +9,6 @@
 package colog
 
 import cats.effect.IO
-import cats.effect.laws.discipline.SyncTests
 import cats.effect.laws.discipline.arbitrary._
 import cats.laws.discipline.arbitrary._
 import cats.laws.discipline.{BifunctorTests, MonadTests, MonadErrorTests}
@@ -25,14 +24,14 @@ class LogTSpec extends CologSuite {
     "MonadError[LogT]",
     implicit ec => MonadErrorTests[LogT[IO, String, ?], Throwable].monadError[Int, Int, Int]
   )
-  checkAllAsync(
+  /*checkAllAsync(
     "Sync[LogT]",
     implicit ec => {
       implicit val cs = ec.contextShift[IO]
 
       SyncTests[LogT[IO, String, ?]].sync[Int, Int, Int]
     }
-  )
+  )*/
   /*checkAll(
     "Concurrent[LogT]",
     ConcurrentTests[LogT[IO, String, ?]].concurrent[String, String, String]
