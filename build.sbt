@@ -133,6 +133,7 @@ lazy val docs = (project in file("website"))
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
+  .in(file("modules/core"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(globalSettings)
   .settings(defaultScalaStyleSettings)
@@ -151,6 +152,7 @@ lazy val coreJS  = core.js
 lazy val coreJVM = core.jvm
 
 lazy val standalone = crossProject(JSPlatform, JVMPlatform)
+  .in(file("modules/standalone"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(globalSettings)
   .settings(defaultScalaStyleSettings)
@@ -168,7 +170,7 @@ lazy val standalone = crossProject(JSPlatform, JVMPlatform)
 lazy val standaloneJS  = standalone.js
 lazy val standaloneJVM = standalone.jvm
 
-lazy val slf4j = project
+lazy val slf4j = (project in file("modules/slf4j"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(globalSettings)
   .settings(defaultScalaStyleSettings)
