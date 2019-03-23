@@ -13,7 +13,8 @@ import cats.mtl.ApplicativeAsk
 
 trait HasLoggerSyntax {
   implicit final def cologHasLoggerSyntax[F[_], E, A](env: E)(
-    implicit A: ApplicativeAsk[F, E], HL: HasLogger[F, E, A]
+      implicit A: ApplicativeAsk[F, E],
+      HL: HasLogger[F, E, A]
   ): HasLoggerOps[F, E, A] =
     new HasLoggerOps[F, E, A](env)
 }

@@ -20,7 +20,11 @@ import colog.Logger
 object NetworkLoggers {
 
   @SuppressWarnings(Array("org.wartremover.warts.Null"))
-  def socket[F[_]](socket: SocketAddress, ec: ExecutorService, charset: Charset = StandardCharsets.UTF_8)(
+  def socket[F[_]](
+      socket: SocketAddress,
+      ec: ExecutorService,
+      charset: Charset = StandardCharsets.UTF_8
+  )(
       implicit F: Async[F]
   ): Resource[F, Logger[F, String]] = {
     def connectSocket(ch: AsynchronousSocketChannel): F[Unit] =
