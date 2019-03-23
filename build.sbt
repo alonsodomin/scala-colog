@@ -128,7 +128,8 @@ lazy val docs = (project in file("website"))
       val disabledWarts = Set(Wart.NonUnitStatements)
       wartremoverErrors.value.filterNot(disabledWarts)
     },
-  ).dependsOn(standaloneJVM, slf4j)
+  )
+  .dependsOn(standaloneJVM, slf4j)
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
