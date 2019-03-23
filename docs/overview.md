@@ -1,7 +1,7 @@
-# Co-Log Scala
-
-[![Build Status](https://travis-ci.org/alonsodomin/scala-colog.svg?branch=master)](https://travis-ci.org/alonsodomin/scala-colog)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e06443e988904f558a08129804ae189d)](https://www.codacy.com/app/alonsodomin/scala-colog?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=alonsodomin/scala-colog&amp;utm_campaign=Badge_Grade)
+---
+id: overview
+title: Overview
+---
 
 Cross-platform pure functional logging library for Scala. Integrates with well known JVM logging frameworks and
  can also be used standalone in ScalaJS or Scala Native.
@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
 
 Now define an environment for your application:
 
-```scala
+```scala mdoc
 import cats.effect.IO
 import colog.{HasLogger, LogRecord, Logger}
 
@@ -32,7 +32,7 @@ object Env {
   implicit val envHasLogger: HasLogger[IO, Env, LogRecord] = new HasLogger[IO, Env, LogRecord] {
     override def getLogger(env: Env): Logger[IO, LogRecord] = env.logger
 
-    override def setLogger(newLogger: Logger[IO, LogRecord], env: Env): Env =
+    override def setLogger(env: Env)(newLogger: Logger[IO, LogRecord]): Env =
       env.copy(logger = newLogger)
   }
 
@@ -41,25 +41,27 @@ object Env {
 
 Define also the effect type for your application, the simplest one is based on a ReaderT monad:
 
-```scala
+```scala mdoc
+import cats.data.ReaderT
+
 type AppIO[A] = ReaderT[IO, Env, A]
 ```
 
 And you can get an instance of the logging API:
 
-```scala
+```scala mdoc
+import colog.Logging
 import cats.mtl.implicits._
 
 val logging = Logging.structured[AppIO, Env]
 
 logging.info("Hello")
-// res0: AppIO[Unit]
 ```
 
 So, with the previous, we are now able to emit log messages, which will be embedded in the `AppIO` effect we just created.
 To be able to run those effects, we need to initialize the desired environment:
 
-```scala
+```scala mdoc
 import colog.standalone._
 
 final val env = Env(SysLoggers.stdout[IO].formatWithF(LogRecord.defaultFormat[IO]))
@@ -67,13 +69,24 @@ final val env = Env(SysLoggers.stdout[IO].formatWithF(LogRecord.defaultFormat[IO
 
 So now we can do the following:
 
-```scala
-logging.info("Hello").run(env).unsafeRunSync()
-[Info] - Hello
+```scala mdoc
+val logAction = logging.info("Hello")
+ 
+logAction.run(env).unsafeRunSync()
 ```
 
-## Acknowledgments
+If interested on also having timestamps in your log statements, we just need to use a timestamped logger:
 
-You gotta give credit where credit is due. `scala-colog` is a Scala fork of Dimitrii Kovanikov's [`colog`](https://github.com/kowainik/co-log),
-the Haskell library that initially explored the idea of composable loggers. For more information about the internals
-read [this very descriptive blog post](https://kowainik.github.io/posts/2018-09-25-co-log) by its Author. 
+```scala mdoc
+import scala.concurrent.ExecutionContext
+
+implicit val timer = IO.timer(ExecutionContext.global)
+
+final val timestampedEnv = Env(
+  SysLoggers.stdout[IO]    
+    .formatWithF(LogRecord.defaultFormat[IO])
+    .timestampedWith(LogRecord.defaultTimestampedFormat)
+)
+
+logAction.run(timestampedEnv).unsafeRunSync()
+```

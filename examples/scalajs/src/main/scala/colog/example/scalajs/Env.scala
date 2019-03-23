@@ -17,7 +17,7 @@ object Env {
   implicit val envHasLogger: HasLogger[IO, Env, LogRecord] = new HasLogger[IO, Env, LogRecord] {
     override def getLogger(env: Env): Logger[IO, LogRecord] = env.logger
 
-    override def setLogger(newLogger: Logger[IO, LogRecord], env: Env): Env =
+    override def setLogger(env: Env)(newLogger: Logger[IO, LogRecord]): Env =
       env.copy(logger = newLogger)
   }
 

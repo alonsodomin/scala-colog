@@ -12,7 +12,6 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 import cats._
-import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import cats.mtl.lifting.FunctorLayer
@@ -49,18 +48,20 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
     Logger(self.log.compose(f))
 
   def formatWithF[B](f: B => F[A])(implicit F: FlatMap[F]): Logger[F, B] =
-    Logger(Kleisli(f).andThen(self.log).run)
+    Logger(b => F.flatMap(f(b))(self.log))
 
   def filter(f: A => Boolean)(implicit F: Applicative[F]): Logger[F, A] =
     Logger(msg => F.whenA(f(msg))(self.log(msg)))
 
   def mapK[G[_]](f: F ~> G): Logger[G, A] =
-    Logger(msg => f.apply(self.log(msg)))
+    Logger(msg => f(self.log(msg)))
 
   def lift[G[_]](implicit G: FunctorLayer[G, F]): Logger[G, A] =
     Logger(msg => G.layer(self.log(msg)))
 
-  def timestamped[B](f: Timestamped[B] => A)(implicit F: Sync[F], timer: Timer[F]): Logger[F, B] = {
+  def timestampedWith[B](
+      f: Timestamped[B] => A
+  )(implicit F: Sync[F], timer: Timer[F]): Logger[F, B] = {
     val baseLogger = self.formatWith(f)
     Logger { msg =>
       for {
@@ -92,7 +93,7 @@ private[colog] trait LoggerInstances1 extends LoggerInstances0 {
   implicit def loggerHasLogger[F[_], A]: HasLogger[F, Logger[F, A], A] =
     new HasLogger[F, Logger[F, A], A] {
       def getLogger(env: Logger[F, A]): Logger[F, A]                       = env
-      def setLogger(logger: Logger[F, A], env: Logger[F, A]): Logger[F, A] = logger
+      def setLogger(env: Logger[F, A])(logger: Logger[F, A]): Logger[F, A] = logger
     }
 
   implicit def loggerMonoidK[F[_]](implicit F: Applicative[F]): MonoidK[Logger[F, ?]] =

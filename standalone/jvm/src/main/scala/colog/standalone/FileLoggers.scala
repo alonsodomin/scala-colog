@@ -10,6 +10,7 @@ package colog.standalone
 
 import java.io.{File, FilenameFilter}
 import java.nio.channels.AsynchronousFileChannel
+import java.nio.charset.{Charset, StandardCharsets}
 import java.nio.file.{Path, Paths, StandardOpenOption}
 
 import cats.data.StateT
@@ -17,33 +18,40 @@ import cats.effect.concurrent.Ref
 import cats.effect.{Async, Resource, Sync}
 import cats.implicits._
 import cats.mtl.implicits._
-
 import colog.Logger
 
 import scala.util.Try
 
 object FileLoggers {
 
-  def single[F[_]](fileName: String)(implicit F: Async[F]): Resource[F, Logger[F, Array[Byte]]] =
+  def single[F[_]](fileName: String)(implicit F: Async[F]): Resource[F, Logger[F, String]] =
     single[F](Paths.get(fileName))
 
-  def single[F[_]](file: Path)(implicit F: Async[F]): Resource[F, Logger[F, Array[Byte]]] = {
+  def single[F[_]](file: Path, charset: Charset = StandardCharsets.UTF_8)(
+      implicit F: Async[F]
+  ): Resource[F, Logger[F, String]] = {
     val channelResource = Resource.make(openLogFileChannel(file))(ch => F.delay(ch.close()))
-    channelResource.map(fileChannel[F])
+    channelResource.map(fileChannel[F](_, charset))
   }
 
-  def autoCleanRolling[F[_]](fileName: String, maxFileSize: Long, maxFiles: Long)(
+  def autoCleanRolling[F[_]](
+      fileName: String,
+      maxFileSize: Long,
+      maxFiles: Long,
+      charset: Charset = StandardCharsets.UTF_8
+  )(
       implicit F: Async[F]
-  ): Resource[F, Logger[F, Array[Byte]]] =
-    rolling(fileName, maxFileSize, maxFiles)(f => F.delay(f.delete()).void)
+  ): Resource[F, Logger[F, String]] =
+    rolling(fileName, maxFileSize, maxFiles, charset)(f => F.delay(f.delete()).void)
 
   def rolling[F[_]](
       fileName: String,
       maxFileSize: Long,
-      maxFiles: Long
+      maxFiles: Long,
+      charset: Charset = StandardCharsets.UTF_8
   )(onFileTooOld: File => F[Unit])(
       implicit F: Async[F]
-  ): Resource[F, Logger[F, Array[Byte]]] = {
+  ): Resource[F, Logger[F, String]] = {
     type FileHandle = (Path, AsynchronousFileChannel)
 
     def openLogFile: F[FileHandle] = {
@@ -113,12 +121,12 @@ object FileLoggers {
           } yield ()
       }
 
-    def rotatingLogger(handleRef: Ref[F, FileHandle]): Resource[F, Logger[F, Array[Byte]]] = {
-      def openLogger: F[Logger[F, Array[Byte]]] =
-        F.delay(Logger[F, Array[Byte]] { msg =>
+    def rotatingLogger(handleRef: Ref[F, FileHandle]): Resource[F, Logger[F, String]] = {
+      def openLogger: F[Logger[F, String]] =
+        F.delay(Logger[F, String] { msg =>
           for {
             h            <- handleRef.get
-            l            <- F.pure(fileChannel[F](h._2))
+            l            <- F.pure(fileChannel[F](h._2, charset))
             _            <- l.log(msg)
             limitReached <- isFileSizeLimitReached(h)
             _            <- F.whenA(limitReached)(cleanUpAndRotate(handleRef))
@@ -138,12 +146,12 @@ object FileLoggers {
   )(implicit F: Sync[F]): F[AsynchronousFileChannel] =
     F.delay(AsynchronousFileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE))
 
-  private def fileChannel[F[_]](channel: AsynchronousFileChannel)(
+  private def fileChannel[F[_]](channel: AsynchronousFileChannel, charset: Charset)(
       implicit F: Async[F]
-  ): Logger[F, Array[Byte]] = {
-    val baseLogger = IOLoggers.fileChannel[StateT[F, Long, ?]](channel)
+  ): Logger[F, String] = {
+    val baseLogger = IOLoggers.fileChannel[StateT[F, Long, ?]](channel, charset)
 
-    Logger[F, Array[Byte]] { bytes =>
+    Logger[F, String] { bytes =>
       for {
         channelSize <- F.delay(channel.size())
         _           <- baseLogger.log(bytes).runA(channelSize)

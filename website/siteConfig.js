@@ -9,6 +9,7 @@
 // site configuration options.
 
 const repoUrl = "https://github.com/alonsodomin/scala-colog";
+const apiUrl = "https://alonsodomin.github.io/scala-colog/api";
 
 // List of projects/orgs using your project for the users page.
 const users = [];
@@ -41,8 +42,7 @@ const siteConfig = {
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
     {doc: 'overview', label: 'Documentation'},
-    //{doc: 'doc4', label: 'API'},
-    {page: 'help', label: 'Help'},
+    {href: apiUrl, label: 'API Docs', external: true},
     {href: repoUrl, label: "GitHub", external: true},
   ],
 
@@ -50,14 +50,14 @@ const siteConfig = {
   users,
 
   /* path to images for header/footer */
-  headerIcon: 'img/docusaurus.svg',
-  footerIcon: 'img/docusaurus.svg',
+  headerIcon: 'img/logs.white.svg',
+  footerIcon: 'img/logs.white.svg',
   favicon: 'img/favicon.png',
 
   /* Colors for website */
   colors: {
-    primaryColor: '#2E8555',
-    secondaryColor: '#205C3B',
+    primaryColor: '#5487bd',
+    secondaryColor: '#3e507d',
   },
 
   /* Custom fonts for website */
@@ -91,17 +91,18 @@ const siteConfig = {
   cleanUrl: true,
 
   // Open Graph and Twitter card images.
-  ogImage: 'img/docusaurus.png',
-  twitterImage: 'img/docusaurus.png',
+  ogImage: 'img/logs.png',
+  twitterImage: 'img/logs.png',
 
   // Show documentation's last contributor's name.
   // enableUpdateBy: true,
 
   // Show documentation's last update time.
-  // enableUpdateTime: true,
+  enableUpdateTime: true,
 
   editUrl: `${repoUrl}/edit/master/docs/`,
 
+  apiUrl,
   repoUrl,
 };
 
