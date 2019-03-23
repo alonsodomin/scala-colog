@@ -10,6 +10,7 @@ package colog.standalone
 
 import java.net.SocketAddress
 import java.nio.channels.{AsynchronousChannelGroup, AsynchronousSocketChannel}
+import java.nio.charset.{Charset, StandardCharsets}
 import java.util.concurrent.ExecutorService
 
 import cats.effect.{Async, Resource}
@@ -19,9 +20,13 @@ import colog.Logger
 object NetworkLoggers {
 
   @SuppressWarnings(Array("org.wartremover.warts.Null"))
-  def socket[F[_]](socket: SocketAddress, ec: ExecutorService)(
+  def socket[F[_]](
+      socket: SocketAddress,
+      ec: ExecutorService,
+      charset: Charset = StandardCharsets.UTF_8
+  )(
       implicit F: Async[F]
-  ): Resource[F, Logger[F, Array[Byte]]] = {
+  ): Resource[F, Logger[F, String]] = {
     def connectSocket(ch: AsynchronousSocketChannel): F[Unit] =
       F.async[Unit](cb => ch.connect(socket, null, toCompletionHandlerU(cb)))
 
@@ -35,7 +40,7 @@ object NetworkLoggers {
       )
     }
 
-    channelRes.map(IOLoggers.channel[F])
+    channelRes.map(IOLoggers.channel[F](_, charset))
   }
 
 }

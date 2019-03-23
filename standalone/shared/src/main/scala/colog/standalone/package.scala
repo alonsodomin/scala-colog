@@ -9,7 +9,7 @@
 package colog
 
 import java.nio.channels.CompletionHandler
-import java.nio.charset.{Charset, StandardCharsets}
+import java.nio.charset.Charset
 
 package object standalone {
 
@@ -26,7 +26,7 @@ package object standalone {
   ): CompletionHandler[Void, AnyRef] =
     toCompletionHandler(cb.compose(_.map(_ => ())))
 
-  def encodeLines(charset: Charset = StandardCharsets.UTF_8): String => Array[Byte] = str => {
+  private[colog] def encodeLines(charset: Charset): String => Array[Byte] = str => {
     val lineSeparator = sys.props.get("line.separator").filter(_.nonEmpty).getOrElse("\n")
     (str + lineSeparator).getBytes(charset)
   }

@@ -23,7 +23,7 @@ object Example extends IOApp {
     SysLoggers
       .stdout[IO]
       .formatWithF(LogRecord.defaultFormat[IO])
-      .timestamped(LogRecord.defaultTimestampedFormat)
+      .timestampedWith(LogRecord.defaultTimestampedFormat)
   )
 
   implicit val logging = Logging.structured[AppEff, Env]

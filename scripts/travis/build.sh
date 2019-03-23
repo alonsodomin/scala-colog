@@ -2,7 +2,7 @@
 
 sbt_cmd="sbt ++$TRAVIS_SCALA_VERSION"
 
-build_and_test="$sbt_cmd clean coverage test"
+build_and_test="$sbt_cmd clean coverage test validateDocs"
 report="$sbt_cmd coverageReport"
 aggregate="$sbt_cmd coverageAggregate"
 codacy="$sbt_cmd codacyCoverage"

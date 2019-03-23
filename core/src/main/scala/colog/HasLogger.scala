@@ -15,15 +15,15 @@ import cats.mtl.lifting.MonadLayer
 
 trait HasLogger[F[_], E, M] {
   def getLogger(env: E): Logger[F, M]
-  def setLogger(logger: Logger[F, M], env: E): E
+  def setLogger(env: E)(logger: Logger[F, M]): E
+
+  def withLogger(env: E)(f: Logger[F, M] => Logger[F, M]): E =
+    setLogger(env)(f(getLogger(env)))
 }
 
 object HasLogger {
 
   def apply[F[_], E, M](implicit ev: HasLogger[F, E, M]): HasLogger[F, E, M] = ev
-
-  def over[F[_], E, M](f: Logger[F, M] => Logger[F, M])(env: E)(implicit F: HasLogger[F, E, M]): E =
-    F.setLogger(f(F.getLogger(env)), env)
 
   implicit def hasLoggerAutoDerive[G[_], F[_], E, M](
       implicit
@@ -40,7 +40,7 @@ object HasLogger {
       } yield ()
     }
 
-    def setLogger(logger: Logger[G, M], env: E): E = env
+    def setLogger(env: E)(logger: Logger[G, M]): E = env
   }
 
 }
