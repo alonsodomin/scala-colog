@@ -14,7 +14,7 @@ object Versions {
     val mtl    = "0.5.0"
   }
 
-  val slf4j     = "1.7.25"
+  val slf4j     = "1.7.26"
   val scalamock = "4.1.0"
 
 }
