@@ -16,7 +16,10 @@ import colog._
 
 import scala.concurrent.duration._
 
-final class Module[F[_]: Timer, G[_]: Monad](implicit F: Sync[F], logging: StructuredLogging[F, Env[G]]) {
+final class Module[F[_]: Timer, G[_]: Monad](
+    implicit F: Sync[F],
+    logging: StructuredLogging[F, Env[G]]
+) {
 
   def doSomething(): F[Unit] =
     for {

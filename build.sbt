@@ -249,3 +249,11 @@ addCommandAlias(
     "validateDocs"
   ).mkString(";", ";", "")
 )
+
+addCommandAlias(
+  "fmt",
+  Seq(
+    "scalafmt",
+    "scalafmtSbt"
+  ).mkString(";", ";", "")
+)

@@ -13,11 +13,12 @@ import colog.{HasLogger, LogRecord, Logger}
 case class Env[F[_]](logger: Logger[F, LogRecord])
 object Env {
 
-  implicit def envHasLogger[F[_]]: HasLogger[F, Env[F], LogRecord] = new HasLogger[F, Env[F], LogRecord] {
-    override def getLogger(env: Env[F]): Logger[F, LogRecord] = env.logger
+  implicit def envHasLogger[F[_]]: HasLogger[F, Env[F], LogRecord] =
+    new HasLogger[F, Env[F], LogRecord] {
+      override def getLogger(env: Env[F]): Logger[F, LogRecord] = env.logger
 
-    override def setLogger(env: Env[F])(newLogger: Logger[F, LogRecord]): Env[F] =
-      env.copy(logger = newLogger)
-  }
+      override def setLogger(env: Env[F])(newLogger: Logger[F, LogRecord]): Env[F] =
+        env.copy(logger = newLogger)
+    }
 
 }
