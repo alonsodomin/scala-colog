@@ -11,26 +11,27 @@ package colog.example.scalajs
 import cats.data.Kleisli
 import cats.effect._
 import cats.mtl.implicits._
+import cats.implicits._
 
 import colog._
 import colog.standalone._
 
 object Example extends IOApp {
 
-  type AppEff[A] = Kleisli[IO, Env, A]
+  type AppEff[A] = Kleisli[IO, Env[IO], A]
 
-  final val env = Env(
+  final val env = Env[IO](
     SysLoggers
       .stdout[IO]
       .formatWithF(LogRecord.defaultFormat[IO])
       .timestampedWith(LogRecord.defaultTimestampedFormat)
   )
 
-  implicit val logging = Logging.structured[AppEff, Env]
+  implicit val logging = Logging.structured[AppEff, Env[IO]]
 
   def run(args: List[String]): IO[ExitCode] = {
-    val mod = new Module[AppEff]
-    mod.doSomething().run(env).map(_ => ExitCode.Success)
+    val mod = new Module[AppEff, IO]
+    mod.doSomething().run(env).as(ExitCode.Success)
   }
 
 }

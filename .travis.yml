@@ -47,7 +47,7 @@ jobs:
     script: scripts/travis/build.sh
 
   - env: TEST="formatting"
-    script: sbt scalafmtCheck scalafmtSbtCheck
+    script: sbt validateStyle
 
   - stage: release
     script: sbt ci-release

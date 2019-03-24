@@ -8,16 +8,23 @@
 
 package colog.example.scalajs
 
-import cats.effect.Sync
+import cats.Monad
+import cats.effect._
 import cats.implicits._
 
 import colog._
 
-final class Module[F[_]](implicit F: Sync[F], logging: StructuredLogging[F, Env]) {
+import scala.concurrent.duration._
+
+final class Module[F[_]: Timer, G[_]: Monad](
+    implicit F: Sync[F],
+    logging: StructuredLogging[F, Env[G]]
+) {
 
   def doSomething(): F[Unit] =
     for {
       _ <- logging.debug("Starting to do something")
+      _ <- Timer[F].sleep(2.seconds)
       _ <- F.delay(println("Application working"))
       _ <- logging.info("Finished doing something")
     } yield ()

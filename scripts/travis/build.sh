@@ -1,18 +1,13 @@
 #!/bin/bash
 
+set -e
+
 sbt_cmd="sbt ++$TRAVIS_SCALA_VERSION"
 
-build_and_test="$sbt_cmd clean coverage test validateDocs"
-report="$sbt_cmd coverageReport"
-aggregate="$sbt_cmd coverageAggregate"
-codacy="$sbt_cmd codacyCoverage"
+build_and_test="$sbt_cmd validateModules validateDocs"
+eval "${build_and_test}"
 
 if [[ ! -z "$CODACY_PROJECT_TOKEN" ]]; then
-    coverage="$report && $aggregate && $codacy"
-else
-    coverage="$report && $aggregate"
+    eval "${sbt_cmd} codacyCoverage"
 fi
 
-all="$build_and_test && $coverage"
-
-eval $all

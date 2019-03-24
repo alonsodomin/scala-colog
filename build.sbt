@@ -78,6 +78,7 @@ lazy val globalSettings = Seq(
     "implicit val globalTimer = IO.timer(ExecutionContext.global)"
   ).mkString("\n"),
   apiURL := Some(url("https://alonsodomin.github.io/scala-colog/api/")),
+  autoAPIMappings := true,
   addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.9" cross CrossVersion.binary),
   wartremoverErrors ++= {
     val disabledWarts = Set(Wart.DefaultArguments, Wart.Any)
@@ -113,7 +114,6 @@ lazy val docs = (project in file("website"))
     mdocVariables := Map(
       "VERSION" -> version.value
     ),
-    autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inProjects(coreJVM, standaloneJVM, slf4j),
     fork in (ScalaUnidoc, unidoc) := true,
     scalacOptions in (ScalaUnidoc, unidoc) ++= Seq(
@@ -133,6 +133,7 @@ lazy val docs = (project in file("website"))
 
 lazy val core = crossProject(JSPlatform, JVMPlatform)
   .crossType(CrossType.Pure)
+  .withoutSuffixFor(JVMPlatform)
   .in(file("modules/core"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(globalSettings)
@@ -152,6 +153,7 @@ lazy val coreJS  = core.js
 lazy val coreJVM = core.jvm
 
 lazy val standalone = crossProject(JSPlatform, JVMPlatform)
+  .withoutSuffixFor(JVMPlatform)
   .in(file("modules/standalone"))
   .enablePlugins(AutomateHeaderPlugin)
   .settings(globalSettings)
@@ -203,7 +205,8 @@ lazy val `example-scalajs` = (project in file("examples/scalajs"))
     scalaJSUseMainModuleInitializer := true,
     libraryDependencies ++= Seq(
       "org.scala-js"      %%% "scalajs-dom"     % "0.9.6",
-      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC1"
+      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC1",
+      "org.scalatest"     %%% "scalatest"       % Versions.scalaTest % Test
     )
   )
   .dependsOn(standaloneJS)
@@ -211,12 +214,22 @@ lazy val `example-scalajs` = (project in file("examples/scalajs"))
 // Command aliases
 
 addCommandAlias(
-  "verify",
+  "validateModules",
   Seq(
     "clean",
+    "coverage",
     "test",
+    "coverageReport",
+    "coverageAggregate",
+  ).mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "validateStyle",
+  Seq(
     "scalafmtCheck",
-    "scalafmtSbtCheck"
+    "scalafmtSbtCheck",
+    "scalastyle",
   ).mkString(";", ";", "")
 )
 
@@ -225,5 +238,22 @@ addCommandAlias(
   Seq(
     "docs/clean",
     "docs/generateWebsite"
+  ).mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "validate",
+  Seq(
+    "validateModules",
+    "validateStyle",
+    "validateDocs"
+  ).mkString(";", ";", "")
+)
+
+addCommandAlias(
+  "fmt",
+  Seq(
+    "scalafmt",
+    "scalafmtSbt"
   ).mkString(";", ";", "")
 )
