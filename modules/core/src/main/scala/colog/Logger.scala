@@ -27,7 +27,8 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
 
   def <&(msg: A): F[Unit] = self.log(msg)
 
-  def >&<[B](f: B => A): Logger[F, B] = formatWith(f)
+  def >::[B](a: A): Logger[F, B] =
+    Logger(_ => self.log(a))
 
   def >*<[B](fb: Logger[F, B])(implicit F: Applicative[F]): Logger[F, (A, B)] =
     Logger({ case (a, b) => self.log(a) *> fb.log(b) })
@@ -91,6 +92,9 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
 object Logger extends LoggerFunctions with LoggerInstances1
 
 private[colog] trait LoggerFunctions {
+
+  def liftF[F[_]](fu: F[Unit]): Logger[F, Unit] =
+    Logger(_ => fu)
 
   def liftIO[F[_], A](logger: Logger[IO, A])(implicit F: LiftIO[F]): Logger[F, A] =
     Logger(msg => F.liftIO(logger.log(msg)))
