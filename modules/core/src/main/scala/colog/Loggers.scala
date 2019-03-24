@@ -20,7 +20,4 @@ object Loggers {
   def noop[F[_], A](implicit F: Applicative[F]): Logger[F, A] =
     Logger(_ => F.unit)
 
-  def const[F[_], A](msg: String)(implicit F: Applicative[F]): Logger[F, String] => Logger[F, A] =
-    base => Logger(_ => base.log(msg))
-
 }

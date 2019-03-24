@@ -109,6 +109,7 @@ lazy val docs = (project in file("website"))
   .settings(globalSettings)
   .settings(
     skip in publish := true,
+    coverageEnabled := false,
     moduleName := "colog-docs",
     docusaurusProjectName := "scala-colog",
     mdocVariables := Map(
@@ -193,7 +194,8 @@ lazy val slf4j = (project in file("modules/slf4j"))
 
 lazy val examples = (project in file("examples"))
   .settings(
-    skip in publish := true
+    skip in publish := true,
+    coverageEnabled := false,
   )
   .aggregate(`example-scalajs`)
 

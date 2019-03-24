@@ -8,6 +8,9 @@
       "acks": {
         "title": "Acknowledgements"
       },
+      "combinators": {
+        "title": "Combinators"
+      },
       "overview": {
         "title": "Overview"
       }
