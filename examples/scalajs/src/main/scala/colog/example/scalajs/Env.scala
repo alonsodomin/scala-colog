@@ -8,16 +8,15 @@
 
 package colog.example.scalajs
 
-import cats.effect.IO
 import colog.{HasLogger, LogRecord, Logger}
 
-case class Env(logger: Logger[IO, LogRecord])
+case class Env[F[_]](logger: Logger[F, LogRecord])
 object Env {
 
-  implicit val envHasLogger: HasLogger[IO, Env, LogRecord] = new HasLogger[IO, Env, LogRecord] {
-    override def getLogger(env: Env): Logger[IO, LogRecord] = env.logger
+  implicit def envHasLogger[F[_]]: HasLogger[F, Env[F], LogRecord] = new HasLogger[F, Env[F], LogRecord] {
+    override def getLogger(env: Env[F]): Logger[F, LogRecord] = env.logger
 
-    override def setLogger(env: Env)(newLogger: Logger[IO, LogRecord]): Env =
+    override def setLogger(env: Env[F])(newLogger: Logger[F, LogRecord]): Env[F] =
       env.copy(logger = newLogger)
   }
 

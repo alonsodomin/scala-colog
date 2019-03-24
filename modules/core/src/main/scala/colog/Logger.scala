@@ -35,6 +35,9 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
   def >*(fu: Logger[F, Unit])(implicit F: Applicative[F]): Logger[F, A] =
     Logger(a => self.log(a) <* fu.log(()))
 
+  def *<[B](fb: Logger[F, B])(implicit F: Applicative[F], ev: Unit =:= A): Logger[F, B] =
+    Logger(b => self.log(ev(())) *> fb.log(b))
+
   def =>>(f: Logger[F, A] => F[Unit])(implicit S: Semigroup[A]): Logger[F, A] =
     extend(f)
 
@@ -49,6 +52,9 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
 
   def formatWithF[B](f: B => F[A])(implicit F: FlatMap[F]): Logger[F, B] =
     Logger(b => F.flatMap(f(b))(self.log))
+
+  def formatWithOption[B](f: B => Option[A])(implicit F: Applicative[F]): Logger[F, B] =
+    Logger(b => f(b).fold(F.unit)(self.log))
 
   def filter(f: A => Boolean)(implicit F: Applicative[F]): Logger[F, A] =
     Logger(msg => F.whenA(f(msg))(self.log(msg)))
@@ -70,6 +76,9 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
       } yield ()
     }
   }
+
+  @inline
+  def >|<[B](fb: Logger[F, B]): Logger[F, Either[A, B]] = orElse(fb)
 
   def or[B, C](other: Logger[F, B])(f: C => Either[A, B]): Logger[F, C] =
     Logger(f(_).fold(self.log, other.log))
@@ -94,6 +103,10 @@ private[colog] trait LoggerInstances1 extends LoggerInstances0 {
     new HasLogger[F, Logger[F, A], A] {
       def getLogger(env: Logger[F, A]): Logger[F, A]                       = env
       def setLogger(env: Logger[F, A])(logger: Logger[F, A]): Logger[F, A] = logger
+
+      override def withLogger(env: Logger[F, A])(
+          f: Logger[F, A] => Logger[F, A]
+      ): Logger[F, A] = env
     }
 
   implicit def loggerMonoidK[F[_]](implicit F: Applicative[F]): MonoidK[Logger[F, ?]] =

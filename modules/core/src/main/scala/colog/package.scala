@@ -9,9 +9,13 @@
 import java.time.Instant
 
 import cats._
+import cats.data.WriterT
 import cats.effect.IO
 
 package object colog {
+  type MemLogT[F[_], A, B] = WriterT[F, Vector[A], B]
+  type MemLog[A, B]        = MemLogT[Id, A, B]
+
   type Log[A, B]              = LogT[Id, A, B]
   type LogIO[A, B]            = LogT[IO, A, B]
   type StructuredLog[F[_], A] = LogT[F, LogRecord, A]

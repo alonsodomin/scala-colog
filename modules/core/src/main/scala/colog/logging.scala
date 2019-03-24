@@ -70,9 +70,7 @@ object Logging {
   ): Logging[F, E, String] =
     new Logging[F, E, String] {
       val F = F0
-
       val A = A0
-
       val HL = HL0
     }
 
@@ -83,9 +81,7 @@ object Logging {
       HL0: HasLogger[F, E, LogRecord]
   ): StructuredLogging[F, E] = new StructuredLogging[F, E] {
     val F = F0
-
     val A = A0
-
     val HL = HL0
   }
 
