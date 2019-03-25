@@ -25,10 +25,10 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
   def async(ec: ExecutionContext)(implicit F: Async[F], CS: ContextShift[F]): Logger[F, A] =
     Logger(msg => CS.evalOn(ec)(self.log(msg)))
 
-  def <&(msg: A): F[Unit] = self.log(msg)
+  def <&(msg: A): F[Unit] = apply(msg)
 
   def >::[B](a: A): Logger[F, B] =
-    Logger(_ => self.log(a))
+    Logger(_ => apply(a))
 
   def >*<[B](fb: Logger[F, B])(implicit F: Applicative[F]): Logger[F, (A, B)] =
     Logger({ case (a, b) => self.log(a) *> fb.log(b) })
@@ -43,7 +43,7 @@ final case class Logger[F[_], A](log: A => F[Unit]) { self =>
     extend(f)
 
   def extract(implicit M: Monoid[A]): F[Unit] =
-    self.log(M.empty)
+    apply(M.empty)
 
   def extend(f: Logger[F, A] => F[Unit])(implicit S: Semigroup[A]): Logger[F, A] =
     Logger(m1 => f(Logger(m2 => self.log(m1 |+| m2))))
