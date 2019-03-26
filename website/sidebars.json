@@ -1,6 +1,6 @@
 {
   "docs": {
-    "Documentation": ["overview", "combinators"],
+    "Documentation": ["overview", "combinators", "testing"],
     "Other": ["acks"]
   }
 }
