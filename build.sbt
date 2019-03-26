@@ -80,10 +80,11 @@ lazy val globalSettings = Seq(
   apiURL := Some(url("https://alonsodomin.github.io/scala-colog/api/")),
   autoAPIMappings := true,
   addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.9" cross CrossVersion.binary),
-  wartremoverErrors ++= {
+  wartremoverErrors in (Compile, compile) ++= {
     val disabledWarts = Set(Wart.DefaultArguments, Wart.Any)
     Warts.unsafe.filterNot(disabledWarts)
   },
+  wartremoverErrors in (Compile, console) := Nil,
   coverageEnabled := true,
 )
 
