@@ -88,6 +88,21 @@ lazy val globalSettings = Seq(
   coverageEnabled := true,
 )
 
+lazy val commonJsSettings = Seq(
+  scalaJSOptimizerOptions := scalaJSOptimizerOptions.value.withBatchMode(
+    isTravisBuild.value),
+  scalacOptions += {
+    val tagOrHash = {
+      if (isSnapshot.value)
+        sys.process.Process("git rev-parse HEAD").lineStream_!.head
+      else version.value
+    }
+    val a = (baseDirectory in LocalRootProject).value.toURI.toString
+    val g = "https://raw.githubusercontent.com/alonsodomin/scala-colog/" + tagOrHash
+    s"-P:scalajs:mapSourceURI:$a->$g/"
+  },
+)
+
 def scalaStyleSettings(config: Configuration) =
   inConfig(config)(
     Seq(
@@ -150,6 +165,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
       "org.typelevel" %%% "cats-testkit"     % Versions.cats.main % Test,
     ),
   )
+  .jsSettings(commonJsSettings)
 
 lazy val coreJS  = core.js
 lazy val coreJVM = core.jvm
@@ -166,6 +182,7 @@ lazy val standalone = crossProject(JSPlatform, JVMPlatform)
       "import colog.standalone._"
     ).mkString("\n", "\n", "")
   )
+  .jsSettings(commonJsSettings)
   .jsSettings(
     libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.6" % Optional
   )
@@ -203,6 +220,7 @@ lazy val examples = (project in file("examples"))
 lazy val `example-scalajs` = (project in file("examples/scalajs"))
   .enablePlugins(AutomateHeaderPlugin, ScalaJSPlugin)
   .settings(globalSettings)
+  .settings(commonJsSettings)
   .settings(
     moduleName := "colog-example-scalajs",
     scalaJSUseMainModuleInitializer := true,
