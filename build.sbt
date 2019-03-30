@@ -89,8 +89,7 @@ lazy val globalSettings = Seq(
 )
 
 lazy val commonJsSettings = Seq(
-  scalaJSOptimizerOptions := scalaJSOptimizerOptions.value.withBatchMode(
-    isTravisBuild.value),
+  scalaJSOptimizerOptions := scalaJSOptimizerOptions.value.withBatchMode(isTravisBuild.value),
   scalacOptions += {
     val tagOrHash = {
       if (isSnapshot.value)
