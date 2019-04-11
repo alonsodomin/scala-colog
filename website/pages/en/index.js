@@ -92,69 +92,20 @@ class Index extends React.Component {
       </Container>
     );
 
-    const FeatureCallout = () => (
-      <div
-        className="productShowcaseSection paddingBottom"
-        style={{textAlign: 'center'}}>
-        <h2>Feature Callout</h2>
-        <MarkdownBlock>These are features of this project</MarkdownBlock>
-      </div>
-    );
-
-    const TryOut = () => (
-      <Block id="try">
-        {[
-          {
-            content: 'Talk about trying this out',
-            image: `${baseUrl}img/docusaurus.svg`,
-            imageAlign: 'left',
-            title: 'Try it Out',
-          },
-        ]}
-      </Block>
-    );
-
-    const Description = () => (
-      <Block background="dark">
-        {[
-          {
-            content:
-              'This is another description of how this project is useful',
-            image: `${baseUrl}img/docusaurus.svg`,
-            imageAlign: 'right',
-            title: 'Description',
-          },
-        ]}
-      </Block>
-    );
-
-    const LearnHow = () => (
-      <Block background="light">
-        {[
-          {
-            content: 'Talk about learning how to use this',
-            image: `${baseUrl}img/docusaurus.svg`,
-            imageAlign: 'right',
-            title: 'Learn How',
-          },
-        ]}
-      </Block>
-    );
-
     const Features = () => (
       <Block layout="fourColumn">
         {[
           {
-            content: 'This is the content of my feature',
-            image: `${baseUrl}img/docusaurus.svg`,
+            content: 'Supports JVM & NodeJS with Native comming next',
+            image: `${baseUrl}img/platform.png`,
             imageAlign: 'top',
-            title: 'Feature One',
+            title: 'Cross Platform',
           },
           {
-            content: 'The content of my second feature',
-            image: `${baseUrl}img/docusaurus.svg`,
+            content: 'Compose several loggers into more complex ones',
+            image: `${baseUrl}img/jigsaw.png`,
             imageAlign: 'top',
-            title: 'Feature Two',
+            title: 'Composable',
           },
         ]}
       </Block>
@@ -194,10 +145,6 @@ class Index extends React.Component {
         <HomeSplash siteConfig={siteConfig} language={language} />
         <div className="mainContainer">
           <Features />
-          <FeatureCallout />
-          <LearnHow />
-          <TryOut />
-          <Description />
           <Showcase />
         </div>
       </div>
