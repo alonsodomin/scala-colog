@@ -56,7 +56,3 @@ jobs:
   
   - stage: publish
     script: sbt docs/docusaurusPublishGhpages
-
-branches:
-  only:
-  - master
