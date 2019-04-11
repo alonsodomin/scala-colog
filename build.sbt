@@ -86,6 +86,7 @@ lazy val globalSettings = Seq(
   },
   wartremoverErrors in (Compile, console) := Nil,
   coverageEnabled := true,
+  sonatypeProfileName := "com.github.alonsodomin",
 )
 
 lazy val commonJsSettings = Seq(
@@ -183,7 +184,7 @@ lazy val standalone = crossProject(JSPlatform, JVMPlatform)
   )
   .jsSettings(commonJsSettings)
   .jsSettings(
-    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.6" % Optional
+    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % Versions.scalajs.dom % Optional
   )
   .dependsOn(core)
 
@@ -197,7 +198,7 @@ lazy val slf4j = (project in file("modules/slf4j"))
   .settings(
     moduleName := "colog-slf4j",
     libraryDependencies ++= Seq(
-      "org.slf4j"     % "slf4j-api"  % Versions.slf4j,
+      "org.slf4j"      % "slf4j-api" % Versions.slf4j,
       "org.scalamock" %% "scalamock" % Versions.scalamock % Test,
     ),
     wartremoverErrors := {
@@ -224,8 +225,8 @@ lazy val `example-scalajs` = (project in file("examples/scalajs"))
     moduleName := "colog-example-scalajs",
     scalaJSUseMainModuleInitializer := true,
     libraryDependencies ++= Seq(
-      "org.scala-js"      %%% "scalajs-dom"     % "0.9.6",
-      "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-RC1",
+      "org.scala-js"      %%% "scalajs-dom"     % Versions.scalajs.dom,
+      "io.github.cquiroz" %%% "scala-java-time" % Versions.scalaTime,
       "org.scalatest"     %%% "scalatest"       % Versions.scalaTest % Test
     )
   )
