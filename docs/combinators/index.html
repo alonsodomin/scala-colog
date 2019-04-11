@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Combinators · Scala Colog</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;h2&gt;&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; id=&quot;combining-loggers&quot;&gt;&lt;/a&gt;&lt;a href=&quot;#combining-loggers&quot; aria-hidden=&quot;true&quot; class=&quot;hash-link&quot;&gt;&lt;svg class=&quot;hash-link-icon&quot; aria-hidden=&quot;true&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Combining Loggers&lt;/h2&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Combinators · Scala Colog"/><meta property="og:type" content="website"/><meta property="og:url" content="https://alonsodomin.github.io/scala-colog/"/><meta property="og:description" content="&lt;h2&gt;&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; id=&quot;combining-loggers&quot;&gt;&lt;/a&gt;&lt;a href=&quot;#combining-loggers&quot; aria-hidden=&quot;true&quot; class=&quot;hash-link&quot;&gt;&lt;svg class=&quot;hash-link-icon&quot; aria-hidden=&quot;true&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Combining Loggers&lt;/h2&gt;
+"/><meta property="og:image" content="https://alonsodomin.github.io/scala-colog/img/logs.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://alonsodomin.github.io/scala-colog/img/logs.png"/><link rel="shortcut icon" href="/scala-colog/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/scala-colog/css/main.css"/><script src="/scala-colog/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/scala-colog/"><img class="logo" src="/scala-colog/img/logs.white.svg" alt="Scala Colog"/><h2 class="headerTitleWithLogo">Scala Colog</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/scala-colog/docs/overview" target="_self">Documentation</a></li><li class=""><a href="https://alonsodomin.github.io/scala-colog/api" target="_blank">API Docs</a></li><li class=""><a href="https://github.com/alonsodomin/scala-colog" target="_blank">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Documentation</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Documentation</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scala-colog/docs/overview">Overview</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/scala-colog/docs/combinators">Combinators</a></li><li class="navListItem"><a class="navItem" href="/scala-colog/docs/testing">Testing</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Other</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scala-colog/docs/acks">Acknowledgements</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/alonsodomin/scala-colog/edit/master/docs/combinators.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 class="postHeaderTitle">Combinators</h1></header><article><div><span><h2><a class="anchor" aria-hidden="true" id="combining-loggers"></a><a href="#combining-loggers" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Combining Loggers</h2>
+<p>The <code>Logger</code> type has instances for <code>Semigroup</code> and <code>Monoid</code>, allowing us to combine different logging methods into a single one. As an example, let's define a logger for the standard output and another one for the standard error:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> stdoutL = <span class="hljs-type">SysLoggers</span>.stdout[<span class="hljs-type">IO</span>]
+<span class="hljs-keyword">val</span> stderrL = <span class="hljs-type">SysLoggers</span>.stderr[<span class="hljs-type">IO</span>]
+</code></pre>
+<p>Now we can combine them into a single logger instance using the semigroup <em>combine</em> operation:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> stdL = stdoutL |+| stderrL
+</code></pre>
+<p>This new combined logger can now be used to send log statements to both the standard output channels:</p>
+<pre><code class="hljs css language-scala">stdL.log(<span class="hljs-string">"This message should be sent to both stdout and stderr"</span>).unsafeRunSync()
+</code></pre>
+<p>Now, this is cool but not particularly interesting since we won't be that really interested on sending log statements to all the standard output channels. When this becomes more useful is when one of our logger outputs is a file on disk. The <code>standalone</code> module provides with several file loggers that we can use for that purpose:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> fileL = <span class="hljs-type">FileLoggers</span>.single[<span class="hljs-type">IO</span>](<span class="hljs-string">"/tmp/colog.log"</span>)
+</code></pre>
+<p>The key difference in here is that we get a <code>Resource[IO, Logger[IO, String]]</code> type, since there is an underlying system resource that needs to be handled; so we can not combine this directly with the logger for the standard out, we need to map over the resource instead:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> fileAndOutL = fileL.map(_ |+| stdoutL)
+</code></pre>
+<p>And now we are ready to use the resource and send a log statement to both, the standard out, and the file specified previously:</p>
+<pre><code class="hljs css language-scala">fileAndOutL
+  .use(_.log(<span class="hljs-string">"This message should be sent to stdout and a file"</span>))
+  .unsafeRunSync()
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="case-classes"></a><a href="#case-classes" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Case Classes</h2>
+<p>The composability of the <code>Logger</code> type can take us to the extent of wanting to emit entire case classes via them. In order to do so, let's start by defining our domain:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">case</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">User</span>(<span class="hljs-params">name: <span class="hljs-type">String</span>, role: <span class="hljs-type">String</span></span>)</span>
+</code></pre>
+<p>And now lest compose our logger by combining different small ones:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> stringL = <span class="hljs-type">SysLoggers</span>.stdout[<span class="hljs-type">IO</span>]
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">constL</span></span>(msg: <span class="hljs-type">String</span>): <span class="hljs-type">Logger</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">Unit</span>] =
+  msg &gt;:: stringL
+
+<span class="hljs-keyword">val</span> userLogger: <span class="hljs-type">Logger</span>[<span class="hljs-type">IO</span>, <span class="hljs-type">User</span>] =
+  (constL(<span class="hljs-string">"username: "</span>) *&lt; stringL &gt;*&lt; constL(<span class="hljs-string">"role: "</span>) *&lt; stringL)
+  .formatWithOption(<span class="hljs-type">User</span>.unapply)
+</code></pre>
+<p>So now we can just simply use it as follows:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> aUser = <span class="hljs-type">User</span>(<span class="hljs-string">"foo"</span>, <span class="hljs-string">"bar"</span>)
+<span class="hljs-comment">// aUser: User = User("foo", "bar")</span>
+userLogger.log(aUser).unsafeRunSync()
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scala-colog/docs/overview"><span class="arrow-prev">← </span><span>Overview</span></a><a class="docs-next button" href="/scala-colog/docs/testing"><span>Testing</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#combining-loggers">Combining Loggers</a></li><li><a href="#case-classes">Case Classes</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/scala-colog/" class="nav-home"><img src="/scala-colog/img/logs.white.svg" alt="Scala Colog" width="66" height="58"/></a><div><h5>Docs</h5><a href="/scala-colog/docs/en/overview">Getting Started</a><a href="https://alonsodomin.github.io/scala-colog/api">API Reference</a></div><div><h5>More</h5><a href="https://github.com/alonsodomin/scala-colog">GitHub</a><a class="github-button" href="https://github.com/alonsodomin/scala-colog" data-icon="octicon-star" data-count-href="/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a></div></section><section class="copyright">Copyright © 2019 A. Alonso Dominguez<br/>Icons made by <a href="https://www.freepik.com/" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></section></footer></div></body></html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Testing · Scala Colog</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;p&gt;When using the &lt;code&gt;colog&lt;/code&gt; loggers in our code, we have the posibility of testing that the expected log statements are actually produced by using a pure logger type in our testing code.&lt;/p&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Testing · Scala Colog"/><meta property="og:type" content="website"/><meta property="og:url" content="https://alonsodomin.github.io/scala-colog/"/><meta property="og:description" content="&lt;p&gt;When using the &lt;code&gt;colog&lt;/code&gt; loggers in our code, we have the posibility of testing that the expected log statements are actually produced by using a pure logger type in our testing code.&lt;/p&gt;
+"/><meta property="og:image" content="https://alonsodomin.github.io/scala-colog/img/logs.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://alonsodomin.github.io/scala-colog/img/logs.png"/><link rel="shortcut icon" href="/scala-colog/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/scala-colog/css/main.css"/><script src="/scala-colog/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/scala-colog/"><img class="logo" src="/scala-colog/img/logs.white.svg" alt="Scala Colog"/><h2 class="headerTitleWithLogo">Scala Colog</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/scala-colog/docs/overview" target="_self">Documentation</a></li><li class=""><a href="https://alonsodomin.github.io/scala-colog/api" target="_blank">API Docs</a></li><li class=""><a href="https://github.com/alonsodomin/scala-colog" target="_blank">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Documentation</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Documentation</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scala-colog/docs/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/scala-colog/docs/combinators">Combinators</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/scala-colog/docs/testing">Testing</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Other</h3><ul class=""><li class="navListItem"><a class="navItem" href="/scala-colog/docs/acks">Acknowledgements</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><a class="edit-page-link button" href="https://github.com/alonsodomin/scala-colog/edit/master/docs/testing.md" target="_blank" rel="noreferrer noopener">Edit</a><h1 class="postHeaderTitle">Testing</h1></header><article><div><span><p>When using the <code>colog</code> loggers in our code, we have the posibility of testing that the expected log statements are actually produced by using a pure logger type in our testing code.</p>
+<p>The <em>pure</em> logger can be instantiated using <code>Loggers.pure</code> and we need to provide it with a type that is able to buffer the log statements in memory for us. In the <code>core</code> module we have the <code>MemLog</code> (or it's transformer sibling <code>MemLogT</code>) type which we could use out of the box for that purpose:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">BufferedLog</span>[<span class="hljs-type">A</span>] </span>= <span class="hljs-type">MemLog</span>[<span class="hljs-type">String</span>, <span class="hljs-type">A</span>]
+<span class="hljs-keyword">val</span> bufferL = <span class="hljs-type">Loggers</span>.pure[<span class="hljs-type">BufferedLog</span>, <span class="hljs-type">String</span>]
+<span class="hljs-comment">// bufferL: Logger[BufferedLog, String] = Logger(</span>
+<span class="hljs-comment">//   colog.Loggers$$$Lambda$5811/2016739473@2f145999</span>
+<span class="hljs-comment">// )</span>
+</code></pre>
+<p>So now we can use that newly defined logger to emit our log statements:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> logged = bufferL.log(<span class="hljs-string">"Hello"</span>)
+<span class="hljs-comment">// logged: BufferedLog[Unit] = WriterT((Vector("Hello"), ()))</span>
+</code></pre>
+<p>The log statements have been accumulated in memory by a <em>Writer monad</em>, so we need to run it to obtain them:</p>
+<pre><code class="hljs css language-scala"><span class="hljs-keyword">val</span> (logs, _) = logged.run
+<span class="hljs-comment">// logs: Vector[String] = Vector("Hello")</span>
+</code></pre>
+<p><code>Loggers.pure</code> can work with any functor that supports the <code>tell</code> operation (known as <code>FunctorTell</code> in <code>cats-mtl</code>), a writer monad is one of them (and that's what the <code>MemLog</code> type is) although it is not required to use it as long as a resolvable instance of a <code>FunctorTell[F[_], Vector[A]]</code> is available.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/scala-colog/docs/combinators"><span class="arrow-prev">← </span><span>Combinators</span></a><a class="docs-next button" href="/scala-colog/docs/acks"><span>Acknowledgements</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/scala-colog/" class="nav-home"><img src="/scala-colog/img/logs.white.svg" alt="Scala Colog" width="66" height="58"/></a><div><h5>Docs</h5><a href="/scala-colog/docs/en/overview">Getting Started</a><a href="https://alonsodomin.github.io/scala-colog/api">API Reference</a></div><div><h5>More</h5><a href="https://github.com/alonsodomin/scala-colog">GitHub</a><a class="github-button" href="https://github.com/alonsodomin/scala-colog" data-icon="octicon-star" data-count-href="/stargazers" data-show-count="true" data-count-aria-label="# stargazers on GitHub" aria-label="Star this project on GitHub">Star</a></div></section><section class="copyright">Copyright © 2019 A. Alonso Dominguez<br/>Icons made by <a href="https://www.freepik.com/" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></section></footer></div></body></html>
