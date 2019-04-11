@@ -7,7 +7,7 @@ object WebsitePlugin extends AutoPlugin {
 
   object autoImport {
     val docusaurusApiFolderName = settingKey[String]("Docusarus destination folder for API docs")
-    val generateWebsite         = taskKey[File]("Generates the final website")
+    val copyAPIDocs             = taskKey[Unit]("Copies API docs into Docusaurus website")
   }
   import autoImport._
   import ScalaUnidocPlugin.autoImport._
@@ -24,7 +24,7 @@ object WebsitePlugin extends AutoPlugin {
           source -> destFile
       }
     },
-    generateWebsite := {
+    copyAPIDocs := {
       val log       = streams.value.log
       val apiFolder = docusarusuApiFolder.value
 
@@ -32,15 +32,16 @@ object WebsitePlugin extends AutoPlugin {
         s"Copying API documentation into Docusaurus generated site at ${apiFolder.getAbsolutePath}"
       )
       IO.copy(fileMappings.value, CopyOptions().withOverwrite(true))
-      docusaurusCreateSite.value
     },
+    docusaurusCreateSite := docusaurusCreateSite.dependsOn(copyAPIDocs).value,
+    docusaurusPublishGhpages := docusaurusPublishGhpages.dependsOn(copyAPIDocs).value,
     cleanFiles := {
       docusaurusBuildFolder.value +: cleanFiles.value
     }
   )
 
   private lazy val docusarusuApiFolder = Def.task {
-    val docusaurusDestFolder = docusaurusCreateSite.value / docusaurusProjectName.value / docusaurusApiFolderName.value
+    val docusaurusDestFolder = baseDirectory.in(ThisBuild).value / "website" / docusaurusProjectName.value / docusaurusApiFolderName.value
     docusaurusDestFolder.mkdirs()
     docusaurusDestFolder
   }
