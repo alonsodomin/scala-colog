@@ -258,7 +258,7 @@ addCommandAlias(
   "validateDocs",
   Seq(
     "docs/clean",
-    "docs/generateWebsite"
+    "docs/docusaurusCreateSite"
   ).mkString(";", ";", "")
 )
 
