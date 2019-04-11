@@ -50,7 +50,7 @@ jobs:
     script: sbt validateStyle
 
   - stage: release
-    script: sbt ci-release
+    script: sbt ci-release docs/docusaurusPublishGhpages
 
 branches:
   only:
