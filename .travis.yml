@@ -40,6 +40,8 @@ stages:
 - name: test
 - name: release
   if: (branch = master AND type = push) OR (tag IS present)
+- name: publish
+  if: tag IS present
 
 jobs:
   include:
@@ -50,7 +52,10 @@ jobs:
     script: sbt validateStyle
 
   - stage: release
-    script: sbt ci-release docs/docusaurusPublishGhpages
+    script: sbt ci-release
+  
+  - stage: publish
+    script: sbt docs/docusaurusPublishGhpages
 
 branches:
   only:
