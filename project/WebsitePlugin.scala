@@ -41,7 +41,7 @@ object WebsitePlugin extends AutoPlugin {
   )
 
   private lazy val docusarusuApiFolder = Def.task {
-    val docusaurusDestFolder = baseDirectory.in(ThisBuild).value / "website" / docusaurusProjectName.value / docusaurusApiFolderName.value
+    val docusaurusDestFolder = docusaurusBuildFolder.value / docusaurusProjectName.value / docusaurusApiFolderName.value
     docusaurusDestFolder.mkdirs()
     docusaurusDestFolder
   }
