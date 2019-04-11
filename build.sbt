@@ -198,7 +198,7 @@ lazy val slf4j = (project in file("modules/slf4j"))
   .settings(
     moduleName := "colog-slf4j",
     libraryDependencies ++= Seq(
-      "org.slf4j"      % "slf4j-api" % Versions.slf4j,
+      "org.slf4j"     % "slf4j-api"  % Versions.slf4j,
       "org.scalamock" %% "scalamock" % Versions.scalamock % Test,
     ),
     wartremoverErrors := {
