@@ -20,7 +20,7 @@ object Versions {
   val scalaTime = "2.0.0-RC1"
 
   object scalajs {
-    val dom = "0.9.6"
+    val dom = "0.9.7"
   }
 
 }
