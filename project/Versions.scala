@@ -11,7 +11,7 @@ object Versions {
   object cats {
     val main   = "1.6.0"
     val effect = "1.3.1"
-    val mtl    = "0.5.0"
+    val mtl    = "0.6.0"
   }
 
   val slf4j     = "1.7.26"
