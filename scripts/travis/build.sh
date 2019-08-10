@@ -2,9 +2,9 @@
 
 set -e
 
-sbt_cmd="sbt ++$TRAVIS_SCALA_VERSION"
+sbt_cmd="sbt ++$TRAVIS_SCALA_VERSION!"
 
-build_and_test="$sbt_cmd validateModules validateDocs"
+build_and_test="$sbt_cmd validate"
 eval "${build_and_test}"
 
 if [[ ! -z "$CODACY_PROJECT_TOKEN" ]]; then
