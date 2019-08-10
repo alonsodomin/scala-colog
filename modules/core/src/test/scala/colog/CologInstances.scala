@@ -9,13 +9,14 @@
 package colog
 
 import cats.{Applicative, Eq}
+import cats.laws.discipline.ExhaustiveCheck
 import cats.laws.discipline.eq._
 
 import org.scalacheck.{Arbitrary, Cogen}
 
 trait CologInstances {
 
-  implicit def loggerEq[F[_], A](implicit A: Arbitrary[A], FU: Eq[F[Unit]]): Eq[Logger[F, A]] =
+  implicit def loggerEq[F[_], A](implicit A: ExhaustiveCheck[A], FU: Eq[F[Unit]]): Eq[Logger[F, A]] =
     Eq.by[Logger[F, A], A => F[Unit]](_.log)
 
   implicit def loggerArbitrary[F[_], A](
@@ -33,7 +34,7 @@ trait CologInstances {
     Cogen((seed, _) => CU.perturb(seed, F.unit))
 
   implicit def logTEq[F[_], A, B](
-      implicit A: Arbitrary[Logger[F, A]],
+      implicit A: ExhaustiveCheck[Logger[F, A]],
       F: Applicative[F],
       FB: Eq[F[B]]
   ): Eq[LogT[F, A, B]] =
@@ -46,5 +47,8 @@ trait CologInstances {
       FB: Arbitrary[F[B]]
   ): Arbitrary[LogT[F, A, B]] =
     Arbitrary(Arbitrary.arbitrary[Logger[F, A] => F[B]].map(LogT.apply(_)))
+
+  implicit lazy val exhaustiveCheckOnStrings: ExhaustiveCheck[String] =
+    ExhaustiveCheck.instance(List("a", "b"))
 
 }

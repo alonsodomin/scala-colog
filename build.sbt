@@ -30,7 +30,6 @@ lazy val globalSettings = Seq(
     "-unchecked", // Enable additional warnings where generated code depends on assumptions.
     "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
     "-Xfatal-warnings", // Fail the compilation if there are any warnings.
-    "-Xfuture", // Turn on future language features.
     "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.    
     "-Xlint:constant", // Evaluation of a constant arithmetic expression results in an error.
     "-Xlint:delayedinit-select", // Selecting member of DelayedInit.
@@ -58,7 +57,17 @@ lazy val globalSettings = Seq(
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, n)) if n < 13 =>
-        Seq("-Xlint:by-name-right-associative", "-Xlint:unsound-match", "-Ypartial-unification", "-Yno-adapted-args", "-Ywarn-inaccessible", "-Ywarn-infer-any", "-Ywarn-nullary-override", "-Ywarn-nullary-unit")
+        Seq(
+          "-Xfuture",
+          "-Xlint:by-name-right-associative",
+          "-Xlint:unsound-match",
+          "-Ypartial-unification",
+          "-Yno-adapted-args",
+          "-Ywarn-inaccessible",
+          "-Ywarn-infer-any",
+          "-Ywarn-nullary-override",
+          "-Ywarn-nullary-unit"
+        )
       case _ => Nil
     }
   },
@@ -159,9 +168,11 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core"        % Versions.cats.main,
       "org.typelevel" %%% "cats-mtl-core"    % Versions.cats.mtl,
+      "org.typelevel" %%% "cats-laws"        % Versions.cats.main % Test,
       "org.typelevel" %%% "cats-effect"      % Versions.cats.effect,
       "org.typelevel" %%% "cats-effect-laws" % Versions.cats.effect % Test,
       "org.typelevel" %%% "cats-testkit"     % Versions.cats.main % Test,
+      "org.typelevel" %%% "discipline-scalatest" % Versions.discipline % Test,
     ),
   )
   .jsSettings(commonJsSettings)

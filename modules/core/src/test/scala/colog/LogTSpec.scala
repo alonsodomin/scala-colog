@@ -11,9 +11,12 @@ package colog
 import cats.effect.IO
 import cats.effect.laws.discipline.arbitrary._
 import cats.laws.discipline.arbitrary._
-import cats.laws.discipline.{BifunctorTests, MonadTests, MonadErrorTests}
+import cats.laws.discipline.{BifunctorTests, MonadTests, MonadErrorTests, ExhaustiveCheck}
 
 class LogTSpec extends CologSuite {
+
+  implicit def exhaustiveCheckOnLoggers[F[_], A](implicit A: ExhaustiveCheck[A]): ExhaustiveCheck[Logger[F, A]] =
+    ExhaustiveCheck.instance(List())
 
   checkAllAsync("Monad[LogT]", implicit ec => MonadTests[LogT[IO, String, ?]].monad[Int, Int, Int])
   checkAllAsync(
