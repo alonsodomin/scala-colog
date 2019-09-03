@@ -10,3 +10,5 @@ package colog
 package syntax
 
 trait AllSyntax extends HasLoggerSyntax
+
+object all extends AllSyntax

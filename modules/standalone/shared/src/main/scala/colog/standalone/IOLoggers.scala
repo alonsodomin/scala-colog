@@ -16,6 +16,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 import cats.effect.{Async, Sync}
 import cats.implicits._
 import cats.mtl.MonadState
+
 import colog.Logger
 
 object IOLoggers {

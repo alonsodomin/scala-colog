@@ -11,6 +11,8 @@ package colog
 import java.nio.channels.CompletionHandler
 import java.nio.charset.Charset
 
+import cats.implicits._
+
 package object standalone {
 
   private[colog] def toCompletionHandler[A](
@@ -24,7 +26,7 @@ package object standalone {
   private[colog] def toCompletionHandlerU[A](
       cb: Either[Throwable, Unit] => Unit
   ): CompletionHandler[Void, AnyRef] =
-    toCompletionHandler(cb.compose(_.map(_ => ())))
+    toCompletionHandler(cb.compose(_.void))
 
   private[colog] def encodeLines(charset: Charset): String => Array[Byte] = str => {
     val lineSeparator = sys.props.get("line.separator").filter(_.nonEmpty).getOrElse("\n")
