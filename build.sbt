@@ -30,8 +30,7 @@ lazy val globalSettings = Seq(
     "-unchecked", // Enable additional warnings where generated code depends on assumptions.
     "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
     "-Xfatal-warnings", // Fail the compilation if there are any warnings.
-    "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.    
-    "-Xlint:constant", // Evaluation of a constant arithmetic expression results in an error.
+    "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
     "-Xlint:delayedinit-select", // Selecting member of DelayedInit.
     "-Xlint:doc-detached", // A Scaladoc comment appears to be detached from its element.
     "-Xlint:inaccessible", // Warn about inaccessible types in method signatures.
@@ -46,14 +45,27 @@ lazy val globalSettings = Seq(
     "-Xlint:stars-align", // Pattern sequence wildcard must align with sequence component.
     "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
     "-Ywarn-dead-code", // Warn when dead code is identified.
-    "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
     "-Ywarn-numeric-widen", // Warn when numerics are widened.
-    "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
-    "-Ywarn-unused:locals", // Warn if a local definition is unused.
-    "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
-    "-Ywarn-unused:privates", // Warn if a private member is unused.
     "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
   ),
+  scalacOptions ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, n)) if n >= 12 =>
+        Seq(
+          "-Xlint:constant",
+          "-Ywarn-extra-implicit",
+          "-Ywarn-unused:imports",
+          "-Ywarn-unused:locals",
+          "-Ywarn-unused:patvars",
+          "-Ywarn-unused:privates"
+        )
+      case Some((2, n)) if n == 11 =>
+        Seq(
+          "-Ywarn-unused"
+        )
+      case _ => Nil
+    }
+  },
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
       case Some((2, n)) if n < 13 =>
@@ -166,12 +178,12 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .settings(
     moduleName := "colog-core",
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core"        % Versions.cats.main,
-      "org.typelevel" %%% "cats-mtl-core"    % Versions.cats.mtl,
-      "org.typelevel" %%% "cats-laws"        % Versions.cats.main % Test,
-      "org.typelevel" %%% "cats-effect"      % Versions.cats.effect,
-      "org.typelevel" %%% "cats-effect-laws" % Versions.cats.effect % Test,
-      "org.typelevel" %%% "cats-testkit"     % Versions.cats.main % Test,
+      "org.typelevel" %%% "cats-core"            % Versions.cats.main,
+      "org.typelevel" %%% "cats-mtl-core"        % Versions.cats.mtl,
+      "org.typelevel" %%% "cats-laws"            % Versions.cats.main % Test,
+      "org.typelevel" %%% "cats-effect"          % Versions.cats.effect,
+      "org.typelevel" %%% "cats-effect-laws"     % Versions.cats.effect % Test,
+      "org.typelevel" %%% "cats-testkit"         % Versions.cats.main % Test,
       "org.typelevel" %%% "discipline-scalatest" % Versions.discipline % Test,
     ),
   )
@@ -252,7 +264,7 @@ addCommandAlias(
     "test",
     "coverageReport",
     "coverageAggregate",
-  ).mkString(";", ";", "")
+  ).mkString(";")
 )
 
 addCommandAlias(
@@ -261,7 +273,7 @@ addCommandAlias(
     "scalafmtCheck",
     "scalafmtSbtCheck",
     "scalastyle",
-  ).mkString(";", ";", "")
+  ).mkString(";")
 )
 
 addCommandAlias(
@@ -269,7 +281,7 @@ addCommandAlias(
   Seq(
     "docs/clean",
     "docs/docusaurusCreateSite"
-  ).mkString(";", ";", "")
+  ).mkString(";")
 )
 
 addCommandAlias(
@@ -278,7 +290,7 @@ addCommandAlias(
     "validateModules",
     "validateStyle",
     "validateDocs"
-  ).mkString(";", ";", "")
+  ).mkString(";")
 )
 
 addCommandAlias(
@@ -286,5 +298,13 @@ addCommandAlias(
   Seq(
     "scalafmt",
     "scalafmtSbt"
-  ).mkString(";", ";", "")
+  ).mkString(";")
+)
+
+addCommandAlias(
+  "chkfmt",
+  Seq(
+    "scalafmtCheck",
+    "scalafmtSbtCheck"
+  ).mkString(";")
 )
