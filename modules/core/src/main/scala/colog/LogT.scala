@@ -231,7 +231,7 @@ private[colog] trait LogTSync[F[_], Msg]
       logger =>
         F.bracketCase(acquire.via(logger))(a => use(a).via(logger))(
           (a, x) => release(a, x).via(logger)
-      )
+        )
     )
 
 }

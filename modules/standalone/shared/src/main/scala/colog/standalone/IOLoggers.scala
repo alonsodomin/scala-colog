@@ -39,7 +39,7 @@ object IOLoggers {
               ByteBuffer.wrap(buf),
               null,
               toCompletionHandler[Integer](cb.compose(_.map(_.toInt)))
-          )
+            )
         )
       }
     }

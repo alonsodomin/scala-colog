@@ -20,33 +20,33 @@ lazy val globalSettings = Seq(
   scalacOptions ++= Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding",
-    "utf-8", // Specify character encoding used by source files.
-    "-explaintypes", // Explain type errors in more detail.
-    "-feature", // Emit warning and location for usages of features that should be imported explicitly.
-    "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
+    "utf-8",                         // Specify character encoding used by source files.
+    "-explaintypes",                 // Explain type errors in more detail.
+    "-feature",                      // Emit warning and location for usages of features that should be imported explicitly.
+    "-language:existentials",        // Existential types (besides wildcard types) can be written and inferred
     "-language:experimental.macros", // Allow macro definition (besides implementation and application)
-    "-language:higherKinds", // Allow higher-kinded types
+    "-language:higherKinds",         // Allow higher-kinded types
     "-language:implicitConversions", // Allow definition of implicit functions called views
-    "-unchecked", // Enable additional warnings where generated code depends on assumptions.
-    "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
-    "-Xfatal-warnings", // Fail the compilation if there are any warnings.
-    "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
-    "-Xlint:delayedinit-select", // Selecting member of DelayedInit.
-    "-Xlint:doc-detached", // A Scaladoc comment appears to be detached from its element.
-    "-Xlint:inaccessible", // Warn about inaccessible types in method signatures.
-    "-Xlint:infer-any", // Warn when a type argument is inferred to be `Any`.
-    "-Xlint:missing-interpolator", // A string literal appears to be missing an interpolator id.
-    "-Xlint:nullary-override", // Warn when non-nullary `def f()' overrides nullary `def f'.
-    "-Xlint:nullary-unit", // Warn when nullary methods return Unit.
-    "-Xlint:option-implicit", // Option.apply used implicit view.
+    "-unchecked",                    // Enable additional warnings where generated code depends on assumptions.
+    "-Xcheckinit",                   // Wrap field accessors to throw an exception on uninitialized access.
+    "-Xfatal-warnings",              // Fail the compilation if there are any warnings.
+    "-Xlint:adapted-args",           // Warn if an argument list is modified to match the receiver.
+    "-Xlint:delayedinit-select",     // Selecting member of DelayedInit.
+    "-Xlint:doc-detached",           // A Scaladoc comment appears to be detached from its element.
+    "-Xlint:inaccessible",           // Warn about inaccessible types in method signatures.
+    "-Xlint:infer-any",              // Warn when a type argument is inferred to be `Any`.
+    "-Xlint:missing-interpolator",   // A string literal appears to be missing an interpolator id.
+    "-Xlint:nullary-override",       // Warn when non-nullary `def f()' overrides nullary `def f'.
+    "-Xlint:nullary-unit",           // Warn when nullary methods return Unit.
+    "-Xlint:option-implicit",        // Option.apply used implicit view.
     "-Xlint:package-object-classes", // Class or object defined in package object.
     "-Xlint:poly-implicit-overload", // Parameterized overloaded implicit methods are not visible as view bounds.
-    "-Xlint:private-shadow", // A private field (or class parameter) shadows a superclass field.
-    "-Xlint:stars-align", // Pattern sequence wildcard must align with sequence component.
-    "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
-    "-Ywarn-dead-code", // Warn when dead code is identified.
-    "-Ywarn-numeric-widen", // Warn when numerics are widened.
-    "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
+    "-Xlint:private-shadow",         // A private field (or class parameter) shadows a superclass field.
+    "-Xlint:stars-align",            // Pattern sequence wildcard must align with sequence component.
+    "-Xlint:type-parameter-shadow",  // A local type parameter shadows a type already in scope.
+    "-Ywarn-dead-code",              // Warn when dead code is identified.
+    "-Ywarn-numeric-widen",          // Warn when numerics are widened.
+    "-Ywarn-value-discard"           // Warn when non-Unit expression results are unused.
   ),
   scalacOptions ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
@@ -106,7 +106,7 @@ lazy val globalSettings = Seq(
   },
   wartremoverErrors in (Compile, console) := Nil,
   coverageEnabled := true,
-  sonatypeProfileName := "com.github.alonsodomin",
+  sonatypeProfileName := "com.github.alonsodomin"
 )
 
 lazy val commonJsSettings = Seq(
@@ -120,13 +120,13 @@ lazy val commonJsSettings = Seq(
     val a = (baseDirectory in LocalRootProject).value.toURI.toString
     val g = "https://raw.githubusercontent.com/alonsodomin/scala-colog/" + tagOrHash
     s"-P:scalajs:mapSourceURI:$a->$g/"
-  },
+  }
 )
 
 def scalaStyleSettings(config: Configuration) =
   inConfig(config)(
     Seq(
-      scalastyleFailOnError := true,
+      scalastyleFailOnError := true
       //(compile in config) := ((compile in config) dependsOn (scalastyle in config).toTask("")).value
     )
   )
@@ -136,7 +136,7 @@ lazy val defaultScalaStyleSettings = scalaStyleSettings(Compile) ++ scalaStyleSe
 lazy val colog = (project in file("."))
   .settings(globalSettings)
   .settings(
-    skip in publish := true,
+    skip in publish := true
   )
   .aggregate(coreJS, coreJVM, standaloneJS, standaloneJVM, slf4j, examples, docs)
 
@@ -164,7 +164,7 @@ lazy val docs = (project in file("website"))
     wartremoverErrors := {
       val disabledWarts = Set(Wart.NonUnitStatements)
       wartremoverErrors.value.filterNot(disabledWarts)
-    },
+    }
   )
   .dependsOn(standaloneJVM, slf4j)
 
@@ -184,8 +184,8 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
       "org.typelevel" %%% "cats-effect"          % Versions.cats.effect,
       "org.typelevel" %%% "cats-effect-laws"     % Versions.cats.effect % Test,
       "org.typelevel" %%% "cats-testkit"         % Versions.cats.main % Test,
-      "org.typelevel" %%% "discipline-scalatest" % Versions.discipline % Test,
-    ),
+      "org.typelevel" %%% "discipline-scalatest" % Versions.discipline % Test
+    )
   )
   .jsSettings(commonJsSettings)
 
@@ -221,12 +221,12 @@ lazy val slf4j = (project in file("modules/slf4j"))
     moduleName := "colog-slf4j",
     libraryDependencies ++= Seq(
       "org.slf4j"     % "slf4j-api"  % Versions.slf4j,
-      "org.scalamock" %% "scalamock" % Versions.scalamock % Test,
+      "org.scalamock" %% "scalamock" % Versions.scalamock % Test
     ),
     wartremoverErrors := {
       val disabledWarts = Set(Wart.Null)
       wartremoverErrors.value.filterNot(disabledWarts)
-    },
+    }
   )
   .dependsOn(coreJVM % "compile->compile;test->test")
 
@@ -235,7 +235,7 @@ lazy val slf4j = (project in file("modules/slf4j"))
 lazy val examples = (project in file("examples"))
   .settings(
     skip in publish := true,
-    coverageEnabled := false,
+    coverageEnabled := false
   )
   .aggregate(`example-scalajs`)
 
@@ -263,7 +263,7 @@ addCommandAlias(
     "coverage",
     "test",
     "coverageReport",
-    "coverageAggregate",
+    "coverageAggregate"
   ).mkString(";")
 )
 
@@ -272,7 +272,7 @@ addCommandAlias(
   Seq(
     "scalafmtCheck",
     "scalafmtSbtCheck",
-    "scalastyle",
+    "scalastyle"
   ).mkString(";")
 )
 
