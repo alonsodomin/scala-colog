@@ -26,3 +26,5 @@ class HasLoggerOps[F[_], E, A](private val env: E)(implicit HL: HasLogger[F, E, 
 
   def withLogger(f: Logger[F, A] => Logger[F, A]): E = HL.withLogger(env)(f)
 }
+
+object haslogger extends HasLoggerSyntax

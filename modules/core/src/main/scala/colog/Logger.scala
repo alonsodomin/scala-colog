@@ -18,7 +18,7 @@ import cats.mtl.lifting.FunctorLayer
 
 import scala.concurrent.ExecutionContext
 
-final case class Logger[F[_], A](log: A => F[Unit]) { self =>
+final class Logger[F[_], A](val log: A => F[Unit]) { self =>
 
   def apply(msg: A): F[Unit] = self.log(msg)
 
@@ -93,6 +93,9 @@ object Logger extends LoggerFunctions with LoggerInstances1
 
 private[colog] trait LoggerFunctions {
 
+  def apply[F[_], A](f: A => F[Unit]): Logger[F, A] =
+    new Logger(f)
+
   def liftF[F[_]](fu: F[Unit]): Logger[F, Unit] =
     Logger(_ => fu)
 
@@ -115,7 +118,7 @@ private[colog] trait LoggerInstances1 extends LoggerInstances0 {
 
   implicit def loggerMonoidK[F[_]](implicit F: Applicative[F]): MonoidK[Logger[F, ?]] =
     new MonoidK[Logger[F, ?]] {
-      override def empty[A]: Logger[F, A] = Logger(_ => F.pure(()))
+      override def empty[A]: Logger[F, A] = Logger(_ => F.unit)
 
       override def combineK[A](x: Logger[F, A], y: Logger[F, A]): Logger[F, A] =
         Logger(a => x.log(a) *> y.log(a))

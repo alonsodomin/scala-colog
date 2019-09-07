@@ -9,10 +9,12 @@
 object Versions {
 
   object cats {
-    val main   = "1.6.0"
-    val effect = "1.3.1"
+    val main   = "2.0.0-RC2"
+    val effect = "2.0.0-RC2"
     val mtl    = "0.6.0"
   }
+
+  val discipline = "1.0.0-M1"
 
   val slf4j     = "1.7.28"
   val scalaTest = "3.0.8"

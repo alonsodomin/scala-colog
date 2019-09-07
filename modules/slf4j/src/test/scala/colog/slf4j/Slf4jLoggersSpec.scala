@@ -11,11 +11,12 @@ package slf4j
 
 import cats.effect.IO
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
 import org.slf4j.{Logger => JLogger}
 
 @SuppressWarnings(Array("org.wartremover.warts.NonUnitStatements"))
-class Slf4jLoggersSpec extends FlatSpec with Matchers with MockFactory {
+class Slf4jLoggersSpec extends AnyFlatSpec with Matchers with MockFactory {
 
   val baseLogger = mock[JLogger]
   val logger = Slf4jLoggers[IO](baseLogger)

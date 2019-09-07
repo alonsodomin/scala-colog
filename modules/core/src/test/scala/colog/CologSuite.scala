@@ -11,19 +11,29 @@ package colog
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
 
+import cats.instances.AllInstances
+import cats.syntax.AllSyntax
+import cats.effect.IO
 import cats.effect.laws.util.{TestContext, TestInstances}
+
 import org.typelevel.discipline.Laws
-import cats.tests.CatsSuite
+import org.typelevel.discipline.scalatest.Discipline
+
+import org.scalatest.Matchers
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import scala.util.control.NonFatal
 
-abstract class CologSuite extends CatsSuite with TestInstances with CologInstances {
+abstract class CologSuite extends AnyFunSuite with Matchers with ScalaCheckDrivenPropertyChecks with Discipline with AllInstances with AllSyntax with TestInstances with CologInstances {
+  type TestLogIOF[A] = MemLogT[IO, String, A]
+  type TestLogF[A] = MemLog[String, A]
 
   def checkAllAsync(name: String, f: TestContext => Laws#RuleSet): Unit = {
     val context = TestContext()
     val ruleSet = f(context)
 
-    for ((id, prop) ← ruleSet.all.properties)
+    for ((id, prop) <- ruleSet.all.properties)
       test(name + "." + id) {
         silenceSystemErr(check(prop))
       }

@@ -96,7 +96,7 @@ object FileLoggers {
       } yield max
 
     def renameFileToNumber(file: File, n: Long): F[Unit] =
-      F.delay(file.renameTo(new File(file.getParent, s"$fileName.$n"))).void
+      F.delay(file.renameTo(new File(file.getParent, s"$fileName.${n.toString}"))).void
 
     def findOldFiles(f: File): F[List[File]] = {
       def isOld(f: File): Boolean = logFileIndex(f).exists(_ > maxFiles)

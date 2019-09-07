@@ -5,11 +5,13 @@ sudo: required
 dist: trusty
 
 jdk:
-- oraclejdk8
+- openjdk8
 - openjdk11
 
 scala:
+- 2.11.12
 - 2.12.9
+- 2.13.0
 
 cache:
   directories:
@@ -19,6 +21,7 @@ cache:
   - $HOME/.sbt/boot/scala*
   - $HOME/.sbt/launchers
   - $HOME/.ivy2
+  - $HOME/.cache/coursier/v1
   - $HOME/.nvm
 
 env:
@@ -54,3 +57,8 @@ jobs:
   
   - stage: publish
     script: sbt docs/docusaurusPublishGhpages
+
+branches:
+  only:
+    - master
+    - /v.+/
