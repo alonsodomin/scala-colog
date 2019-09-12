@@ -11,7 +11,7 @@ object Versions {
   object cats {
     val main   = "2.0.0-RC2"
     val effect = "2.0.0-RC2"
-    val mtl    = "0.6.0"
+    val mtl    = "0.7.0"
   }
 
   val discipline = "1.0.0-M1"
