@@ -18,6 +18,8 @@ import colog._
 import org.scalatest._
 
 import scala.concurrent.ExecutionContext
+import org.scalatest.flatspec.AsyncFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 class ModuleSpec extends AsyncFlatSpec with Matchers {
 
