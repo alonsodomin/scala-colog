@@ -18,7 +18,7 @@ object Versions {
 
   val slf4j     = "1.7.30"
   val scalaTest = "3.0.9"
-  val scalamock = "5.0.0"
+  val scalamock = "5.1.0"
   val scalaTime = "2.0.0"
 
   object scalajs {
