@@ -9,7 +9,7 @@
 object Versions {
 
   object cats {
-    val main   = "2.0.0-RC2"
+    val main   = "2.0.0"
     val effect = "2.0.0-RC2"
     val mtl    = "0.7.0"
   }
