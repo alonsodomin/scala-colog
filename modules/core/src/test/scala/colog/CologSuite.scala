@@ -19,11 +19,11 @@ import cats.effect.laws.util.{TestContext, TestInstances}
 import org.typelevel.discipline.Laws
 import org.typelevel.discipline.scalatest.Discipline
 
-import org.scalatest.Matchers
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers.AnyFunSuite
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import scala.util.control.NonFatal
+import org.scalatest.matchers.should.Matchers
 
 abstract class CologSuite extends AnyFunSuite with Matchers with ScalaCheckDrivenPropertyChecks with Discipline with AllInstances with AllSyntax with TestInstances with CologInstances {
   type TestLogIOF[A] = MemLogT[IO, String, A]
